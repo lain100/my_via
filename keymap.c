@@ -22,7 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define IS_UNILATERAL_INPUT(r, m) ((m) & (1U << (r)->event.key.row))
 
 #define IS_BILATERAL_INPUT(r, i, m) (IS_UNILATERAL_INPUT((r), IS_UNILATERAL_INPUT((i), (m)) ? (0xFF & ~(m)) : (m)))
-#define IS_BILATERAL_INPUT(r, i, m) (IS_UNILATERAL_INPUT((r), IS_UNILATERAL_INPUT((i), (m)) ? (0xFF & ~(m)) : (m)))
 
 typedef struct {
     uint8_t index;
@@ -237,12 +236,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
         case QK_MOD_TAP ... QK_MOD_TAP_MAX:
             if (IS_LAYER_ON(2)) {
-                uint8_t saved_mods = get_mods();
+                const uint8_t saved_mods = get_mods();
                 caps_word_on();
                 set_mods(saved_mods);
             }
             if (record->event.pressed && !record->tap.count) {
-                enqueue(IS_UNILATERAL_INPUT(record, 0x0F) ? &lmts : &rmts, keycode);
+                mt_queue_t *mts = IS_UNILATERAL_INPUT(record, 0x0F) ? &lmts : &rmts;
+                enqueue(mts, keycode);
                 return false;
             }
     }
@@ -294,11 +294,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     }
                 } else {
                     tap_code(fn[idx].keycode);
-                    nav.type = idx == 0 ? NAV_UndR : 0;
+                    nav.type = idx == 0 ? NAV_UndR : nav.type;
                     KC_EDIT  = idx == 4 ? KC_C : 0;
                 }
                 if (KC_EDIT) {
-                    uint8_t saved_mods = get_mods();
+                    const uint8_t saved_mods = get_mods();
                     clear_mods();
                     add_weak_mods(MOD_LCTL);
                     register_code(KC_EDIT);
@@ -341,7 +341,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
             }
             if (record->event.pressed) {
-                uint8_t saved_mods = get_mods();
+                const uint8_t saved_mods = get_mods();
                 switch (nav.type) {
                     case NAV_UndR:
                     case NAV_CTab:
