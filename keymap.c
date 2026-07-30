@@ -36,12 +36,12 @@ static uint16_t    inter_keycode;
 static keyrecord_t inter_record;
 
 uint8_t unpack_mods(uint16_t keycode) {
-    uint8_t mods = QK_MOD_TAP_GET_MODS(keycode);
+    const uint8_t mods = QK_MOD_TAP_GET_MODS(keycode);
     return mods & 0x10 ? (mods << 4) : mods;
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    uint16_t tap_part = 0xFF & keycode;
+    const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
         if (tap_part > KC_Z || IS_UNILATERAL_INPUT(record, 0x88) || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
             inter_keycode             = keycode;
@@ -73,7 +73,7 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
-    if (is_quick_succession_input && (IS_QK_MOD_TAP(keycode) || IS_QK_LAYER_TAP(keycode)) && IS_BILATERAL_INPUT(record, &inter_record, 0x0F)) {
+    if (is_quick_succession_input && IS_BILATERAL_INPUT(record, &inter_record, 0x0F)) {
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
         pressed_keys[tap.index] |= tap.bitmask;
         record->tap.interrupted = false;
@@ -100,10 +100,10 @@ static morph_key_t fn[5] = {{}, {KC_APP, MOD_LALT}, {KC_F15, MOD_LSFT}, {KC_F16,
 
 void repeat_keys(void) {
     if (del.registered && timer_elapsed(del.timer) > del_rep_delay[del.phase]) {
-        const uint8_t mods = get_mods();
+        const uint8_t saved_mods = get_mods();
         unregister_mods(MOD_LSFT);
         tap_code(del.keycode);
-        set_mods(mods);
+        set_mods(saved_mods);
         del.timer = timer_read();
         if (del.phase < ARRAY_SIZE(del_rep_delay) - 1) {
             del.phase++;
@@ -125,7 +125,10 @@ void within_word(uint16_t keycode) {
     }
     clear_weak_mods();
     if (keycode == brcts[reception_id][1]) {
+        const uint8_t saved_mods = get_mods();
+        clear_mods();
         tap_code(KC_LEFT);
+        set_mods(saved_mods);
         reception_id = null_id;
         return;
     }
@@ -236,7 +239,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case KC_MS_BTN1 ... KC_MS_BTN3: {
             report_mouse_t mouse_report = pointing_device_get_report();
-            uint8_t        btn          = MOUSE_BTN1 << (keycode - KC_MS_BTN1);
+            const uint8_t  btn          = MOUSE_BTN1 << (keycode - KC_MS_BTN1);
             if (get_mods()) {
                 if (record->event.pressed) {
                     mouse_report.buttons |= btn;
@@ -250,12 +253,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         case LT(0, KC_NO):
             if (record->event.pressed) {
-                uint8_t current_layer = get_highest_layer(layer_state) % 4;
+                const uint8_t current_layer = get_highest_layer(layer_state) % 4;
                 layer_move(record->tap.count ? (current_layer + 1) : 0);
             }
             return false;
         case LT(0, KC_F1)... LT(0, KC_F5): {
-            uint8_t         idx = keycode - LT(0, KC_F1);
+            const uint8_t   idx = keycode - LT(0, KC_F1);
             static uint16_t KC_EDIT;
             if (record->event.pressed) {
                 if (record->tap.count) {
@@ -357,14 +360,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case KC_BSPC:
             if (record->event.pressed) {
-                const uint8_t mods = get_mods();
-                if ((mods | get_oneshot_mods()) & MOD_LSFT) {
+                const uint8_t saved_mods = get_mods();
+                if ((saved_mods | get_oneshot_mods()) & MOD_LSFT) {
                     keycode = KC_DEL;
                     del_oneshot_mods(MOD_LSFT);
                     unregister_mods(MOD_LSFT);
                 }
                 tap_code(keycode);
-                set_mods(mods);
+                set_mods(saved_mods);
                 del = (morph_key_t){.keycode = keycode, .timer = timer_read(), .registered = true};
             } else {
                 del.registered = false;
@@ -469,7 +472,7 @@ bool caps_word_press_user(uint16_t keycode) {
 
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     if (del.registered) {
-        uint16_t keycode = mouse_report.x > VOL_TENSION_THRESHOLD ? KC_VOLU : mouse_report.x < -VOL_TENSION_THRESHOLD ? KC_VOLD : 0;
+        const uint16_t keycode = mouse_report.x > VOL_TENSION_THRESHOLD ? KC_VOLU : mouse_report.x < -VOL_TENSION_THRESHOLD ? KC_VOLD : 0;
         register_code(keycode);
         unregister_code(keycode);
         mouse_report = (report_mouse_t){};
