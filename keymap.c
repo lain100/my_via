@@ -66,7 +66,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (IS_UNILATERAL_INPUT(record, 0x99)) {
+    if (IS_UNILATERAL_INPUT(record, 0x88)) {
         return 0;
     }
     return QUICK_TAP_TERM;
