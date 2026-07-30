@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 
 #define IS_UNILATERAL_INPUT(r, m) ((m) & (1U << (r)->event.key.row))
-
 #define IS_BILATERAL_INPUT(r, i, m) (IS_UNILATERAL_INPUT((r), IS_UNILATERAL_INPUT((i), (m)) ? (0xFF & ~(m)) : (m)))
 
 typedef struct {
@@ -32,11 +31,9 @@ typedef struct {
 
 static uint8_t pressed_keys[32];
 
+static bool        is_quick_succession_input;
 static uint16_t    inter_keycode;
 static keyrecord_t inter_record;
-
-static bool    is_quick_succession_input;
-static uint8_t expected_layer;
 
 uint8_t unpack_mods(uint16_t keycode) {
     uint8_t mods = QK_MOD_TAP_GET_MODS(keycode);
@@ -44,14 +41,15 @@ uint8_t unpack_mods(uint16_t keycode) {
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
-        if ((0xFF & keycode) > KC_Z || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
+        if (tap_part > KC_Z || IS_UNILATERAL_INPUT(record, 0x88) || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
             inter_keycode             = keycode;
-            is_quick_succession_input = false;
+            is_quick_succession_input = IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI));
         }
         inter_record = *record;
     } else {
-        if ((0xFF & keycode) <= KC_Z && keycode == inter_keycode) {
+        if (tap_part <= KC_Z && keycode == inter_keycode) {
             is_quick_succession_input = true;
         }
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
@@ -61,35 +59,21 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
             record->tap.count++;
         }
     }
-    if (IS_QK_LAYER_TAP(keycode)) {
-        uint8_t layer_state = QK_LAYER_TAP_GET_LAYER(keycode);
-        if (record->event.pressed) {
-            expected_layer |= 1U << layer_state;
-        } else {
-            expected_layer &= ~(1U << layer_state);
-        }
-        if (layer_state == 4) {
-            keyball_set_scroll_mode(record->event.pressed);
-        }
+    if (IS_QK_LAYER_TAP(keycode) && QK_LAYER_TAP_GET_LAYER(keycode) == 4) {
+        keyball_set_scroll_mode(record->event.pressed);
     }
     return true;
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (IS_QK_LAYER_TAP(keycode)) {
-        switch (keycode) {
-            case LT(0, KC_X):
-            case LT(0, KC_3):
-            case LT(0, KC_F1)... LT(0, KC_F5):
-                return QUICK_TAP_TERM;
-        }
+    if (IS_UNILATERAL_INPUT(record, 0x99)) {
         return 0;
     }
     return QUICK_TAP_TERM;
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
-    if (expected_layer <= 1U && (IS_QK_MOD_TAP(keycode) || (IS_QK_LAYER_TAP(keycode) && IS_UNILATERAL_INPUT(record, 0x77))) && (is_quick_succession_input || (keycode & (QK_LALT | QK_LGUI))) && IS_BILATERAL_INPUT(record, &inter_record, 0x0F)) {
+    if (is_quick_succession_input && (IS_QK_MOD_TAP(keycode) || IS_QK_LAYER_TAP(keycode)) && IS_BILATERAL_INPUT(record, &inter_record, 0x0F)) {
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
         pressed_keys[tap.index] |= tap.bitmask;
         record->tap.interrupted = false;
@@ -445,9 +429,7 @@ combo_t key_combos[] = {[CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_SH_OS] = COM
 
 bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode, keyrecord_t *record) {
     switch (combo_index) {
-        case CMB_MS_BTN1:
-        case CMB_MS_BTN2:
-        case CMB_MS_BTN3:
+        case CMB_MS_BTN1 ... CMB_MS_BTN3:
             if (IS_LAYER_ON(2)) {
                 return false;
             }
