@@ -248,12 +248,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         }
-        case KC_INT4:
+        case LT(0, KC_NO):
             if (record->event.pressed) {
-                add_weak_mods(MOD_LGUI);
-                register_code(KC_SLSH);
-            } else {
-                unregister_code(KC_SLSH);
+                uint8_t current_layer = get_highest_layer(layer_state) % 4;
+                layer_move(record->tap.count ? (current_layer + 1) : 0);
             }
             return false;
         case LT(0, KC_F1)... LT(0, KC_F5): {
@@ -296,12 +294,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         }
-        case LT(0, KC_L):
-            if (record->event.pressed) {
-                uint8_t current_layer = get_highest_layer(layer_state) % 4;
-                layer_move(record->tap.count ? (current_layer + 1) : 0);
-            }
-            return false;
         case LT(0, KC_LNG1):
         case LT(0, KC_LNG2):
             if (is_swap_hands_on()) {
@@ -314,6 +306,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 } else {
                     caps_word_on();
                 }
+            }
+            return false;
+        case KC_INT4:
+            if (record->event.pressed) {
+                add_weak_mods(MOD_LGUI);
+                register_code(KC_SLSH);
+            } else {
+                unregister_code(KC_SLSH);
             }
             return false;
         case KC_RGHT ... KC_LEFT:

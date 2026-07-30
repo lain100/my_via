@@ -155,8 +155,8 @@ InitListView(row, height) {
 
     filterEdit := _Gui.AddEdit(theme "w750 h34 vFilter -Vscroll -Tabstop -WantReturn")
     filterEdit.SetFont("s12", "Segoe UI")
-    filterEdit.OnEvent("Change", (*) => (ApplyFilter(lv, lv.GetNext())
-        (ClipHistory.Filtered.Length ? "" : showEdit.Focus())))
+    filterEdit.OnEvent("Change", (ctrl, *) => (ApplyFilter(lv, lv.GetNext())
+        (lv.GetNext() ? "" : (showEdit.Value := ctrl.Value))))
 
     lv := _Gui.AddListView(theme "wp -Hdr -Tabstop h" 4 + (height + 1) * row, [""])
     lv.OnEvent("Focus", (*) => ShowFocusItem(lv))
@@ -165,7 +165,7 @@ InitListView(row, height) {
 
     showEdit := _Gui.AddEdit(theme "ym wp hp+42")
     showEdit.SetFont("s12", "Consolas")
-    showEdit.OnEvent("Focus", (ctrl, *) => ((Ctrl.Value := SetTargetText(lv))
+    showEdit.OnEvent("Focus", (ctrl, *) => ((ctrl.Value := SetTargetText(lv))
         (lv.GetNext() ? "" : Send("{End}"))))
     showEdit.OnEvent("LoseFocus", (ctrl, *) => ChangeItem(lv, ctrl.Value))
 
