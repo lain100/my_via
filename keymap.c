@@ -44,11 +44,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
         if (tap_part > KC_Z || IS_UNILATERAL_INPUT(record, 0x88) || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
-            if (IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI))) {
-                is_quick_succession_input = true;
-                return true;
-            }
-            is_quick_succession_input = false;
+            is_quick_succession_input = IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI));
             inter_keycode             = keycode;
         }
         inter_record = *record;
