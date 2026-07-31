@@ -49,7 +49,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         inter_record = *record;
     } else {
-        if (tap_part <= KC_Z && keycode == inter_keycode) {
+        if (tap_part <= KC_Z && keycode == inter_keycode && get_highest_layer(layer_state) == 0) {
             is_quick_succession_input = true;
         }
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
@@ -182,7 +182,7 @@ void set_mts_mods(mt_queue_t *mts) {
 void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
     uint16_t poped_key;
     while (dequeue(mts, &poped_key)) {
-        uint8_t tap_part = QK_MOD_TAP_GET_TAP_KEYCODE(poped_key);
+        const uint8_t tap_part = QK_MOD_TAP_GET_TAP_KEYCODE(poped_key);
         if (is_caps_word_on()) {
             caps_word_press_user(tap_part);
         }
@@ -202,7 +202,7 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
         set_mts_mods(&rmts);
         return;
     }
-    bool is_unilateral_input = IS_UNILATERAL_INPUT(record, 0x07);
+    const bool is_unilateral_input = IS_UNILATERAL_INPUT(record, 0x07);
     set_mts_mods(!is_unilateral_input ? &lmts : &rmts);
     send_mts_taps(is_unilateral_input ? &lmts : &rmts, keycode);
 }
