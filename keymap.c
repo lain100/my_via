@@ -83,7 +83,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
-enum navkey_types { NAV_UndR = 1, NAV_CTab, NAV_Tab };
+enum navkey_types { NAV_UndR = 1, NAV_ACTab, NAV_Tab };
 
 typedef struct {
     uint16_t keycode;
@@ -96,7 +96,6 @@ typedef struct {
 const uint16_t del_rep_delay[33] = {400, 99, 79, 65, 57, 49, 43, 40, 35, 33, 30, 28, 26, 25, 23, 22, 20, 20, 19, 18, 17, 16, 15, 15, 14, 14, 13, 13, 12, 12, 11, 11, 10};
 
 static morph_key_t nav, del;
-static morph_key_t fn[5] = {{}, {KC_APP, MOD_LALT}, {KC_F15, MOD_LSFT}, {KC_F16, MOD_LCTL}, {}};
 
 void repeat_keys(void) {
     if (del.registered && timer_elapsed(del.timer) > del_rep_delay[del.phase]) {
@@ -235,7 +234,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
     procoss_pended_keys(keycode, record);
 
-    static uint8_t permanent_mods;
     switch (keycode) {
         case KC_MS_BTN1 ... KC_MS_BTN3: {
             report_mouse_t mouse_report = pointing_device_get_report();
@@ -257,44 +255,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 layer_move(record->tap.count ? (current_layer + 1) : 0);
             }
             return false;
-        case LT(0, KC_F1)... LT(0, KC_F5): {
-            const uint8_t   idx = keycode - LT(0, KC_F1);
-            static uint16_t KC_EDIT;
-            if (record->event.pressed) {
-                if (record->tap.count) {
-                    if (timer_elapsed(fn[idx].timer) > QUICK_TAP_TERM << 1) {
-                        if (fn[idx].type) {
-                            permanent_mods = get_mods() ^ fn[idx].type;
-                            set_mods(permanent_mods);
-                            if (idx == 1) {
-                                tap_code(KC_TAB);
-                            }
-                        }
-                        fn[idx].timer = timer_read();
-                        nav.type      = idx == 0 ? NAV_UndR : nav.type;
-                        KC_EDIT       = idx == 4 ? KC_V : 0;
-                    } else {
-                        unregister_mods(fn[idx].type);
-                        nav.type = idx == 3 ? NAV_CTab : 0;
-                    }
+        case LT(0, KC_F1):
+            nav.type = NAV_UndR;
+            return false;
+        case LT(0, KC_F2)... LT(0, KC_F5): {
+            static const uint8_t mods[4]    = {MOD_LALT | MOD_LCTL, MOD_LSFT | MOD_LCTL, MOD_LCTL, MOD_LCTL};
+            static const uint8_t codes[4]   = {KC_APP, KC_F15, KC_F16, KC_C};
+            const uint8_t        index      = keycode - LT(0, KC_F2);
+            const uint8_t        saved_mods = get_mods();
+            clear_mods();
+            if (record->tap.count) {
+                if (record->event.pressed) {
+                    register_mods(mods[index]);
+                    register_code(index == 3 ? KC_V : KC_TAB);
+                    nav.type = index == 0 ? NAV_ACTab : nav.type;
                 } else {
-                    tap_code(fn[idx].keycode);
-                    nav.type = idx == 0 ? NAV_UndR : nav.type;
-                    KC_EDIT  = idx == 4 ? KC_C : 0;
+                    unregister_code(index == 3 ? KC_V : KC_TAB);
                 }
-                if (KC_EDIT) {
-                    const uint8_t saved_mods = get_mods();
-                    clear_mods();
-                    add_weak_mods(MOD_LCTL);
-                    register_code(KC_EDIT);
-                    set_mods(saved_mods);
-                    clear_weak_mods();
-                    fn[idx].registered = true;
-                }
-            } else if (fn[idx].registered) {
-                fn[idx].registered = false;
-                unregister_code(KC_EDIT);
+            } else if (record->event.pressed) {
+                register_mods(index == 3 ? MOD_LCTL : 0);
+                tap_code(codes[index]);
             }
+            set_mods(saved_mods);
             return false;
         }
         case LT(0, KC_LNG1):
@@ -331,21 +313,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 const uint8_t saved_mods = get_mods();
                 switch (nav.type) {
                     case NAV_UndR:
-                    case NAV_CTab:
                         clear_mods();
-                        add_weak_mods(MOD_LCTL);
+                        register_mods(MOD_LCTL);
+                        nav.keycode = keycode == KC_LEFT ? KC_Z : KC_Y;
+                        break;
                     case NAV_Tab:
-                        switch (nav.type) {
-                            case NAV_UndR:
-                                nav.keycode = keycode == KC_LEFT ? KC_Z : KC_Y;
-                                break;
+                        switch (keycode) {
+                            case KC_LEFT:
+                                register_mods(MOD_LSFT);
                             default:
-                                switch (keycode) {
-                                    case KC_LEFT:
-                                        add_weak_mods(MOD_LSFT);
-                                    default:
-                                        nav.keycode = KC_TAB;
-                                }
+                                nav.keycode = KC_TAB;
                         }
                         break;
                     default:
@@ -353,7 +330,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
                 register_code(nav.keycode);
                 set_mods(saved_mods);
-                clear_weak_mods();
                 nav.registered = true;
                 return false;
             }
@@ -376,15 +352,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(2, KC_H):
             if (!record->tap.count) {
                 if (!record->event.pressed) {
-                    if (nav.type) {
-                        nav.type = 0;
-                        if (nav.registered) {
-                            nav.registered = false;
-                            unregister_code(nav.keycode);
-                        }
+                    if (nav.type == NAV_ACTab) {
+                        tap_code(KC_ENT);
                     }
-                    unregister_mods(permanent_mods);
-                    permanent_mods = 0;
+                    nav.type = 0;
                 }
                 if (!IS_LAYER_ON(1)) {
                     layer_clear();
