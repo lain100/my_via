@@ -66,7 +66,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (IS_UNILATERAL_INPUT(record, 0x88)) {
+    if (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & (QK_LSFT)))) {
         return 0;
     }
     return QUICK_TAP_TERM;
@@ -83,7 +83,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
-enum navkey_types { NAV_UndR = 1, NAV_ACTab, NAV_Tab };
+enum navkey_types { NAV_UndR = 1, NAV_Tab, NAV_ACTab };
 
 typedef struct {
     uint16_t keycode;
@@ -206,6 +206,12 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
     send_mts_taps(is_unilateral_input ? &lmts : &rmts, keycode);
 }
 
+static uint8_t oneshot_locked_mods = 0;
+
+void oneshot_locked_mods_changed_user(uint8_t mods) {
+    oneshot_locked_mods |= mods;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool layer4_is_held;
     if (IS_LAYER_ON(2)) {
@@ -265,12 +271,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             const uint8_t        saved_mods = get_mods();
             clear_mods();
             if (record->tap.count) {
+                if (index == 0) {
+                    nav.type = NAV_ACTab;
+                }
+                keycode = index == 3 ? KC_V : KC_TAB;
                 if (record->event.pressed) {
                     register_mods(mods[index]);
-                    register_code(index == 3 ? KC_V : KC_TAB);
-                    nav.type = index == 0 ? NAV_ACTab : nav.type;
+                    register_code(keycode);
                 } else {
-                    unregister_code(index == 3 ? KC_V : KC_TAB);
+                    unregister_code(keycode);
                 }
             } else if (record->event.pressed) {
                 register_mods(index == 3 ? MOD_LCTL : 0);
@@ -356,8 +365,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                         tap_code(KC_ENT);
                     }
                     nav.type = 0;
+                    unregister_mods(oneshot_locked_mods);
                 }
-                if (!IS_LAYER_ON(1)) {
+                if (IS_LAYER_OFF(1)) {
                     layer_clear();
                 }
             }
