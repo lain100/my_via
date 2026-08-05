@@ -66,7 +66,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & (QK_LSFT)))) {
+    if (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & QK_LSFT))) {
         return 0;
     }
     return QUICK_TAP_TERM;
@@ -83,7 +83,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
-enum navkey_types { NAV_UndR = 1, NAV_Tab, NAV_ACTab };
+enum navkey_types { NAV_UndR = 1, NAV_Tab };
 
 typedef struct {
     uint16_t keycode;
@@ -259,27 +259,26 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             nav.type = NAV_UndR;
             return false;
         case LT(0, KC_F2)... LT(0, KC_F5): {
-            static const uint8_t mods[4]    = {MOD_LALT | MOD_LCTL, MOD_LSFT | MOD_LCTL, MOD_LCTL, MOD_LCTL};
+            static const uint8_t mods[4]    = {MOD_LALT, MOD_LSFT | MOD_LCTL, MOD_LCTL, MOD_LCTL};
             static const uint8_t codes[4]   = {KC_APP, KC_F15, KC_F16, KC_C};
             const uint8_t        index      = keycode - LT(0, KC_F2);
             const uint8_t        saved_mods = get_mods();
-            clear_mods();
-            if (record->tap.count) {
-                if (index == 0) {
-                    nav.type = NAV_ACTab;
-                }
-                keycode = index == 3 ? KC_V : KC_TAB;
-                if (record->event.pressed) {
+            keycode                         = index == 3 ? KC_V : KC_TAB;
+            if (record->event.pressed) {
+                clear_mods();
+                if (record->tap.count) {
                     register_mods(mods[index]);
                     register_code(keycode);
                 } else {
-                    unregister_code(keycode);
+                    register_mods(index == 3 ? MOD_LCTL : 0);
+                    tap_code(codes[index]);
                 }
-            } else if (record->event.pressed) {
-                register_mods(index == 3 ? MOD_LCTL : 0);
-                tap_code(codes[index]);
+                if (index) {
+                    set_mods(saved_mods);
+                }
+            } else if (record->tap.count) {
+                unregister_code(keycode);
             }
-            set_mods(saved_mods);
             return false;
         }
         case LT(0, KC_LNG1):
@@ -355,11 +354,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(2, KC_H):
             if (!record->tap.count) {
                 if (!record->event.pressed) {
-                    if (nav.type == NAV_ACTab) {
-                        tap_code(KC_ENT);
-                    }
-                    nav.type = 0;
                     unregister_mods(MOD_HYPR);
+                    nav.type = 0;
                 }
                 if (IS_LAYER_OFF(1)) {
                     layer_clear();
