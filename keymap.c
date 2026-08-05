@@ -261,20 +261,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
-        case KC_MS_BTN1 ... KC_MS_BTN3: {
-            if (get_mods()) {
-                report_mouse_t mouse_report = pointing_device_get_report();
-                const uint8_t  btn          = MOUSE_BTN1 << (keycode - KC_MS_BTN1);
-                if (record->event.pressed) {
-                    mouse_report.buttons |= btn;
-                } else {
-                    mouse_report.buttons &= ~btn;
-                }
-                pointing_device_set_report(mouse_report);
-                return false;
-            }
-            break;
-        }
         case LT(0, KC_NO):
             if (record->event.pressed) {
                 const uint8_t current_layer = get_highest_layer(layer_state) % 4;
@@ -312,6 +298,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 if (record->tap.count <= 1) {
                     tap_code(keycode == LT(0, KC_LNG2) ? KC_F13 : KC_F14);
+                    if (!record->tap.count) {
+                        add_oneshot_mods(MOD_LSFT);
+                    }
                     caps_word_off();
                 } else {
                     caps_word_on();
