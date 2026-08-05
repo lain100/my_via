@@ -86,7 +86,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 enum navkey_types { NAV_UndR = 1, NAV_Tab };
 
 typedef struct {
-    uint16_t keycode;
+    uint8_t  keycode;
     uint8_t  type;
     uint8_t  phase;
     uint16_t timer;
@@ -101,10 +101,7 @@ static morph_key_t nav, del;
 
 void repeat_keys(void) {
     if (del.registered && timer_elapsed(del.timer) > del_rep_delay[del.phase]) {
-        const uint8_t saved_mods = get_mods();
-        unregister_mods(MOD_LSFT);
         tap_code(del.keycode);
-        set_mods(saved_mods);
         del.timer = timer_read();
         if (del.phase < ARRAY_SIZE(del_rep_delay) - 1) {
             del.phase++;
@@ -219,29 +216,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     static bool is_swap_hands_toggle;
-    if (keycode == LT(0, 1)) {
-        if (record->event.pressed) {
-            if (record->tap.count == 1) {
-                if (is_swap_hands_toggle) {
-                    is_swap_hands_toggle = false;
-                    swap_hands_off();
-                } else {
-                    swap_hands_on();
-                }
-            } else if (record->tap.count) {
-                is_swap_hands_toggle = true;
-                swap_hands_on();
-            } else {
-                is_swap_hands_toggle = false;
-                swap_hands_off();
-                nav.type = NAV_Tab;
-            }
-        }
-        return false;
-    } else if (!is_swap_hands_toggle) {
-        swap_hands_off();
-    }
-
     switch (keycode) {
         case LT(0, KC_3):
         case LT(0, KC_X):
@@ -259,14 +233,38 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 enqueue(mts, keycode);
                 return false;
             }
+            break;
+        case LT(0, 1):
+            if (record->event.pressed) {
+                if (record->tap.count == 1) {
+                    if (is_swap_hands_toggle) {
+                        is_swap_hands_toggle = false;
+                        swap_hands_off();
+                    } else {
+                        swap_hands_on();
+                    }
+                } else if (record->tap.count) {
+                    is_swap_hands_toggle = true;
+                    swap_hands_on();
+                } else {
+                    is_swap_hands_toggle = false;
+                    swap_hands_off();
+                    nav.type = NAV_Tab;
+                }
+            }
+            return false;
     }
+
     procoss_pended_keys(keycode, record);
+    if (!is_swap_hands_toggle) {
+        swap_hands_off();
+    }
 
     switch (keycode) {
         case KC_MS_BTN1 ... KC_MS_BTN3: {
-            report_mouse_t mouse_report = pointing_device_get_report();
-            const uint8_t  btn          = MOUSE_BTN1 << (keycode - KC_MS_BTN1);
             if (get_mods()) {
+                report_mouse_t mouse_report = pointing_device_get_report();
+                const uint8_t  btn          = MOUSE_BTN1 << (keycode - KC_MS_BTN1);
                 if (record->event.pressed) {
                     mouse_report.buttons |= btn;
                 } else {
@@ -312,8 +310,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(0, KC_LNG1):
         case LT(0, KC_LNG2):
             if (record->event.pressed) {
-                tap_code(keycode == LT(0, KC_LNG2) ? KC_F13 : KC_F14);
-                if (record->tap.count) {
+                if (record->tap.count <= 1) {
+                    tap_code(keycode == LT(0, KC_LNG2) ? KC_F13 : KC_F14);
                     caps_word_off();
                 } else {
                     caps_word_on();
