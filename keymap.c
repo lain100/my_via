@@ -206,12 +206,6 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
     send_mts_taps(is_unilateral_input ? &lmts : &rmts, keycode);
 }
 
-static uint8_t oneshot_locked_mods = 0;
-
-void oneshot_locked_mods_changed_user(uint8_t mods) {
-    oneshot_locked_mods |= mods;
-}
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool layer4_is_held;
     if (IS_LAYER_ON(2)) {
@@ -365,7 +359,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                         tap_code(KC_ENT);
                     }
                     nav.type = 0;
-                    unregister_mods(oneshot_locked_mods);
+                    unregister_mods(MOD_HYPR);
                 }
                 if (IS_LAYER_OFF(1)) {
                     layer_clear();
@@ -390,7 +384,7 @@ void matrix_scan_user(void) {
     repeat_keys();
 }
 
-enum combos { CMB_INT4, CMB_SH_OS, CMB_SH_TOG1, CMB_SH_TOG2, CMB_SH_OFF, CMB_LNG1, CMB_LNG2, CMB_PSCR, CMB_OS_CTL, CMB_OS_SFT, CMB_OS_ALT, CMB_MS_BTN1, CMB_MS_BTN2, CMB_MS_BTN3 };
+enum combos { CMB_INT4, CMB_SH_OS, CMB_SH_TOG1, CMB_SH_TOG2, CMB_SH_OFF, CMB_LNG1, CMB_LNG2, CMB_PSCR, CMB_OS_CTL, CMB_OS_SFT, CMB_OS_ALT, CMB_OS_GUI, CMB_MS_BTN1, CMB_MS_BTN2, CMB_MS_BTN3 };
 
 #define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
 
@@ -405,11 +399,12 @@ const uint16_t PROGMEM cmb_pscr[]    = {KC_L, KC_D, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]  = {KC_D, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]  = {KC_L, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_alt[]  = {KC_L, KC_D, COMBO_END};
+const uint16_t PROGMEM cmb_os_gui[]  = {KC_Q, KC_L, COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[] = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[] = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[] = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
 
-combo_t key_combos[] = {[CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_SH_OS] = COMBO(cmb_sh_os, SH_OS), [CMB_SH_TOG1] = COMBO(cmb_sh_tog1, SH_TOGG), [CMB_SH_TOG2] = COMBO(cmb_sh_tog2, SH_TOGG), [CMB_SH_OFF] = COMBO(cmb_sh_off, SH_OFF), [CMB_LNG1] = COMBO(cmb_lng1, LT(0, KC_LNG1)), [CMB_LNG2] = COMBO(cmb_lng2, LT(0, KC_LNG2)), [CMB_PSCR] = COMBO(cmb_pscr, KC_PSCR), [CMB_OS_CTL] = COMBO(cmb_os_ctl, OSM(MOD_LCTL)), [CMB_OS_SFT] = COMBO(cmb_os_sft, OSM(MOD_LSFT)), [CMB_OS_ALT] = COMBO(cmb_os_alt, OSM(MOD_LALT)), [CMB_MS_BTN1] = COMBO(cmb_ms_btn1, KC_MS_BTN1), [CMB_MS_BTN2] = COMBO(cmb_ms_btn2, KC_MS_BTN2), [CMB_MS_BTN3] = COMBO(cmb_ms_btn3, KC_MS_BTN3)};
+combo_t key_combos[] = {[CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_SH_OS] = COMBO(cmb_sh_os, SH_OS), [CMB_SH_TOG1] = COMBO(cmb_sh_tog1, SH_TOGG), [CMB_SH_TOG2] = COMBO(cmb_sh_tog2, SH_TOGG), [CMB_SH_OFF] = COMBO(cmb_sh_off, SH_OFF), [CMB_LNG1] = COMBO(cmb_lng1, LT(0, KC_LNG1)), [CMB_LNG2] = COMBO(cmb_lng2, LT(0, KC_LNG2)), [CMB_PSCR] = COMBO(cmb_pscr, KC_PSCR), [CMB_OS_CTL] = COMBO(cmb_os_ctl, OSM(MOD_LCTL)), [CMB_OS_SFT] = COMBO(cmb_os_sft, OSM(MOD_LSFT)), [CMB_OS_ALT] = COMBO(cmb_os_alt, OSM(MOD_LALT)), [CMB_OS_GUI] = COMBO(cmb_os_gui, OSM(MOD_LGUI)), [CMB_MS_BTN1] = COMBO(cmb_ms_btn1, KC_MS_BTN1), [CMB_MS_BTN2] = COMBO(cmb_ms_btn2, KC_MS_BTN2), [CMB_MS_BTN3] = COMBO(cmb_ms_btn3, KC_MS_BTN3)};
 
 bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode, keyrecord_t *record) {
     switch (combo_index) {
