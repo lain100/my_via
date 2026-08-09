@@ -319,7 +319,7 @@ zr	ざる
 nr	なる		DisplayAmbiguousResult
 nrms	なります		DisplayAmbiguousResult
 nb	ねば
-nk	なか
+nk	なか		DisplayAmbiguousResult
 nz	なぜ
 rz	らず
 rr	られ		DisplayAmbiguousResult
@@ -353,8 +353,7 @@ ws	わせ
 rs	らせ		DisplayAmbiguousResult
 rsrr	らせられ		DisplayAmbiguousResult
 rsrrr	らせられる
-rn	らな		DisplayAmbiguousResult
-rnkr	らなけれ
+nkrb	なければ
 bk	べき
 tr	ている
 dr	でいる

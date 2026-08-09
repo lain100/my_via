@@ -49,7 +49,9 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         inter_record = *record;
     } else {
-        if (tap_part <= KC_Z && keycode == inter_keycode && get_highest_layer(layer_state) == 0) {
+        if (get_highest_layer(layer_state)) {
+            is_quick_succession_input = false;
+        } else if (tap_part <= KC_Z && keycode == inter_keycode) {
             is_quick_succession_input = true;
         }
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
