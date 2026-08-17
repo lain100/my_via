@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CAPS_WORD_IDLE_TIMEOUT 0
 
 #define ONESHOT_TAP_TOGGLE 2
-#define ONESHOT_TIMEOUT 2000
+#define ONESHOT_TIMEOUT 3000
 
 #define PERMISSIVE_HOLD
 #define COMBO_SHOULD_TRIGGER

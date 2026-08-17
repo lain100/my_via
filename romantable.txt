@@ -10,10 +10,10 @@ z-	〜
 z[	『		DisplayAmbiguousResult
 z]	』
 z[]	『』
-'r	←
-'t	↓
-'d	↑
-'s	→
+jr	←
+jt	↓
+jd	↑
+js	→
 [	「
 ]	」
 va	ゔぁ

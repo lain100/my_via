@@ -68,7 +68,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & QK_LSFT))) {
+    if (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & QK_LSFT) && get_highest_layer(layer_state) == 0)) {
         return 0;
     }
     return QUICK_TAP_TERM;
@@ -202,11 +202,12 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
     if (IS_UNILATERAL_INPUT(record, 0x88) || IS_QK_COMBO(record)) {
         set_mts_mods(&lmts);
         set_mts_mods(&rmts);
+        is_quick_succession_input = false;
         return;
     }
-    const bool is_unilateral_input = IS_UNILATERAL_INPUT(record, 0x07);
-    set_mts_mods(!is_unilateral_input ? &lmts : &rmts);
-    send_mts_taps(is_unilateral_input ? &lmts : &rmts, keycode);
+    const bool is_row_0_to_2 = IS_UNILATERAL_INPUT(record, 0x07);
+    set_mts_mods(!is_row_0_to_2 ? &lmts : &rmts);
+    send_mts_taps(is_row_0_to_2 ? &lmts : &rmts, keycode);
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
