@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 
 #define IS_UNILATERAL_INPUT(r, m) ((m) & (1U << (r)->event.key.row))
-#define IS_BILATERAL_INPUT(r, i, m) (IS_UNILATERAL_INPUT((r), IS_UNILATERAL_INPUT((i), (m)) ? (0xFF & ~(m)) : (m)))
 
 typedef struct {
     uint8_t index;
@@ -75,7 +74,7 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
-    if (is_quick_succession_input && IS_BILATERAL_INPUT(record, &inter_record, 0x0F)) {
+    if (is_quick_succession_input) {
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
         pressed_keys[tap.index] |= tap.bitmask;
         record->tap.interrupted = false;
