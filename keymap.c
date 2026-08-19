@@ -364,14 +364,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         case LT(2, KC_H):
-            if (!record->tap.count) {
-                if (!record->event.pressed) {
-                    unregister_mods(MOD_HYPR);
-                    nav.type = 0;
-                }
-                if (IS_LAYER_OFF(1)) {
-                    layer_clear();
-                }
+            if (IS_LAYER_OFF(1)) {
+                layer_clear();
+            }
+            if (!record->event.pressed && !record->tap.count) {
+                unregister_mods(MOD_HYPR);
+                nav.type = 0;
             }
             break;
         case LT(4, KC_SPC):

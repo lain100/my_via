@@ -362,3 +362,5 @@ snkr	しなければ
 dst	でした		DisplayAmbiguousResult
 nrmst	なりました
 nrgt	なりがち
+kz	かず
+mz	まず
