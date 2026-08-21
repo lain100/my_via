@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 
 #define IS_UNILATERAL_INPUT(r, m) ((m) & (1U << (r)->event.key.row))
+#define IS_EXCEPTIONAL_INPUT (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & QK_LSFT) && !((keycode >> 8) & (MOD_HYPR & ~MOD_LSFT)) && get_highest_layer(layer_state) == 0))
 
 typedef struct {
     uint8_t index;
@@ -42,7 +43,7 @@ uint8_t unpack_mods(uint16_t keycode) {
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
-        if (tap_part > KC_Z || IS_UNILATERAL_INPUT(record, 0x88) || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
+        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
             is_quick_succession_input = IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI));
             inter_keycode             = keycode;
         }
@@ -67,7 +68,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & QK_LSFT) && get_highest_layer(layer_state) == 0)) {
+    if (IS_EXCEPTIONAL_INPUT) {
         return 0;
     }
     return QUICK_TAP_TERM;
@@ -87,28 +88,12 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 enum navkey_types { NAV_UndR = 1, NAV_Tab };
 
 typedef struct {
-    uint8_t  keycode;
-    uint8_t  type;
-    uint8_t  phase;
-    uint16_t timer;
-    bool     registered;
+    uint8_t keycode;
+    uint8_t type;
+    bool    registered;
 } morph_key_t;
 
-const uint16_t del_rep_delay[33] = {
-    400, 99, 79, 65, 57, 49, 43, 40, 35, 33, 30, 28, 26, 25, 23, 22, 20, 20, 19, 18, 17, 16, 15, 15, 14, 14, 13, 13, 12, 12, 11, 11, 10,
-};
-
-static morph_key_t nav, del;
-
-void repeat_keys(void) {
-    if (del.registered && timer_elapsed(del.timer) > del_rep_delay[del.phase]) {
-        tap_code(del.keycode);
-        del.timer = timer_read();
-        if (del.phase < ARRAY_SIZE(del_rep_delay) - 1) {
-            del.phase++;
-        }
-    }
-}
+static morph_key_t nav;
 
 void within_word(uint16_t keycode) {
     static const uint16_t brcts[][2] = {
@@ -209,6 +194,8 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
     send_mts_taps(is_row_0_to_2 ? &lmts : &rmts, keycode);
 }
 
+static bool is_volkey_held;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool layer4_is_held;
     if (IS_LAYER_ON(2)) {
@@ -218,6 +205,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     static bool is_swap_hands_toggle;
+    static bool is_alternative_swap_hands;
     switch (keycode) {
         case LT(0, KC_3):
         case LT(0, KC_X):
@@ -246,19 +234,27 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                         swap_hands_on();
                     }
                 } else if (record->tap.count) {
-                    is_swap_hands_toggle = true;
+                    is_swap_hands_toggle      = true;
+                    is_alternative_swap_hands = false;
                     swap_hands_on();
                 } else {
                     is_swap_hands_toggle = false;
-                    swap_hands_off();
-                    nav.type = NAV_Tab;
+                    is_alternative_swap_hands ^= true;
                 }
             }
             return false;
     }
 
     procoss_pended_keys(keycode, record);
-    if (!is_swap_hands_toggle) {
+    if (is_alternative_swap_hands) {
+        if (!record->event.pressed && !lmts.count && !rmts.count) {
+            if (is_swap_hands_on()) {
+                swap_hands_off();
+            } else {
+                swap_hands_on();
+            }
+        }
+    } else if (!is_swap_hands_toggle) {
         swap_hands_off();
     }
 
@@ -267,6 +263,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 const uint8_t current_layer = get_highest_layer(layer_state) % 4;
                 layer_move(record->tap.count ? (current_layer + 1) : 0);
+            }
+            return false;
+        case LT(0, 2):
+            if (record->tap.count) {
+                nav.type = NAV_Tab;
+            } else {
+                is_volkey_held = record->event.pressed;
             }
             return false;
         case LT(0, KC_F1):
@@ -350,19 +353,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false;
             }
             break;
-        case KC_BSPC:
-        case KC_DEL:
-            if (record->event.pressed) {
-                tap_code(keycode);
-                del = (morph_key_t){
-                    .keycode    = keycode,
-                    .timer      = timer_read(),
-                    .registered = true,
-                };
-            } else {
-                del.registered = false;
-            }
-            return false;
         case LT(2, KC_H):
             if (IS_LAYER_OFF(1)) {
                 layer_clear();
@@ -386,11 +376,8 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-void matrix_scan_user(void) {
-    repeat_keys();
-}
-
 enum combos {
+    CMB_VOL,
     CMB_INT4,
     CMB_SH_OS_TOGG1,
     CMB_DEL1,
@@ -410,6 +397,7 @@ enum combos {
 
 #define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
 
+const uint16_t PROGMEM cmb_vol[]         = {KC_Z, KC_M, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_int4[]        = {KC_Z, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {KC_M, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_del1[]        = {KC_Z, KC_M, COMBO_END};
@@ -427,7 +415,7 @@ const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_EN
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
 
 combo_t key_combos[] = {
-    [CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(0, 1)), [CMB_DEL1] = COMBO(cmb_del1, KC_DEL), [CMB_DEL2] = COMBO(cmb_del2, KC_DEL), [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)), [CMB_LNG1] = COMBO(cmb_lng1, LT(0, KC_LNG1)), [CMB_LNG2] = COMBO(cmb_lng2, LT(0, KC_LNG2)), [CMB_PSCR] = COMBO(cmb_pscr, KC_PSCR), [CMB_OS_CTL] = COMBO(cmb_os_ctl, OSM(MOD_LCTL)), [CMB_OS_SFT] = COMBO(cmb_os_sft, OSM(MOD_LSFT)), [CMB_OS_ALT] = COMBO(cmb_os_alt, OSM(MOD_LALT)), [CMB_OS_GUI] = COMBO(cmb_os_gui, OSM(MOD_LGUI)), [CMB_MS_BTN1] = COMBO(cmb_ms_btn1, KC_MS_BTN1), [CMB_MS_BTN2] = COMBO(cmb_ms_btn2, KC_MS_BTN2), [CMB_MS_BTN3] = COMBO(cmb_ms_btn3, KC_MS_BTN3),
+    [CMB_VOL] = COMBO(cmb_vol, LT(0, 2)), [CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(0, 1)), [CMB_DEL1] = COMBO(cmb_del1, KC_DEL), [CMB_DEL2] = COMBO(cmb_del2, KC_DEL), [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)), [CMB_LNG1] = COMBO(cmb_lng1, LT(0, KC_LNG1)), [CMB_LNG2] = COMBO(cmb_lng2, LT(0, KC_LNG2)), [CMB_PSCR] = COMBO(cmb_pscr, KC_PSCR), [CMB_OS_CTL] = COMBO(cmb_os_ctl, OSM(MOD_LCTL)), [CMB_OS_SFT] = COMBO(cmb_os_sft, OSM(MOD_LSFT)), [CMB_OS_ALT] = COMBO(cmb_os_alt, OSM(MOD_LALT)), [CMB_OS_GUI] = COMBO(cmb_os_gui, OSM(MOD_LGUI)), [CMB_MS_BTN1] = COMBO(cmb_ms_btn1, KC_MS_BTN1), [CMB_MS_BTN2] = COMBO(cmb_ms_btn2, KC_MS_BTN2), [CMB_MS_BTN3] = COMBO(cmb_ms_btn3, KC_MS_BTN3),
 };
 
 bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode, keyrecord_t *record) {
@@ -471,11 +459,8 @@ bool caps_word_press_user(uint16_t keycode) {
 #define VOL_TENSION_THRESHOLD 5
 
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
-    if (del.registered) {
+    if (is_volkey_held) {
         const uint16_t keycode = mouse_report.x > VOL_TENSION_THRESHOLD ? KC_VOLU : mouse_report.x < -VOL_TENSION_THRESHOLD ? KC_VOLD : 0;
-        if (keycode) {
-            del.keycode = 0;
-        }
         register_code(keycode);
         unregister_code(keycode);
         mouse_report = (report_mouse_t){};
