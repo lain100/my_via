@@ -198,14 +198,23 @@ static bool is_volkey_held;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool layer4_is_held;
+    static bool is_swap_hands_toggle;
+    static bool is_alternative_swap_hands;
+
+    static uint16_t held_count;
+
+    if (record->event.pressed) {
+        held_count++;
+    } else {
+        held_count--;
+    }
+
     if (IS_LAYER_ON(2)) {
         caps_word_off();
     } else if (layer4_is_held) {
         layer_on(4);
     }
 
-    static bool is_swap_hands_toggle;
-    static bool is_alternative_swap_hands;
     switch (keycode) {
         case LT(0, KC_3):
         case LT(0, KC_X):
@@ -227,8 +236,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(0, 1):
             if (record->event.pressed) {
                 if (record->tap.count == 1) {
-                    if (is_swap_hands_toggle) {
-                        is_swap_hands_toggle = false;
+                    if (is_swap_hands_toggle || is_alternative_swap_hands) {
+                        is_swap_hands_toggle      = false;
+                        is_alternative_swap_hands = false;
                         swap_hands_off();
                     } else {
                         swap_hands_on();
@@ -238,21 +248,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     is_alternative_swap_hands = false;
                     swap_hands_on();
                 } else {
-                    is_swap_hands_toggle = false;
-                    is_alternative_swap_hands ^= true;
+                    is_swap_hands_toggle      = false;
+                    is_alternative_swap_hands = true;
+                    swap_hands_toggle();
                 }
             }
             return false;
     }
 
     procoss_pended_keys(keycode, record);
+
     if (is_alternative_swap_hands) {
-        if (!record->event.pressed && !lmts.count && !rmts.count) {
-            if (is_swap_hands_on()) {
-                swap_hands_off();
-            } else {
-                swap_hands_on();
-            }
+        if (!held_count) {
+            swap_hands_toggle();
         }
     } else if (!is_swap_hands_toggle) {
         swap_hands_off();
