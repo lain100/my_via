@@ -205,7 +205,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     if (record->event.pressed) {
         held_count++;
-    } else {
+    } else if (held_count > 0) {
         held_count--;
     }
 
@@ -250,6 +250,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 } else {
                     is_swap_hands_toggle      = false;
                     is_alternative_swap_hands = true;
+                    held_count                = 0;
                     swap_hands_toggle();
                 }
             }

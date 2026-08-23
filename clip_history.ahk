@@ -354,5 +354,18 @@ F20:: Send("../")
 F21:: Click
 F22:: Reload
 ^Esc::Esc
+#^+t:: {
+    TransDegree := WinGetTransparent("A")
+    TransDegree := TransDegree ? TransDegree : 256
+    nextDegree := ""
+    for i in [1, 2, 3, 4, 5, 6, 7, 8] {
+        val := 256 - 32 * i
+        if (TransDegree > val) {
+            nextDegree := val ? val : "off"
+            break
+        }
+    }
+    WinSetTransparent(nextDegree, "A")
+}
 
 Tips("終わったよ", 800)
