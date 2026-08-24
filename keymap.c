@@ -253,6 +253,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (is_alternative_swap_hands) {
         if (IS_UNILATERAL_INPUT(record, 0x8F)) {
             swap_hands_on();
+            if (get_highest_layer(layer_state)) {
+                swap_hands_off();
+            }
         } else {
             swap_hands_off();
         }
