@@ -371,8 +371,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 nav.type = 0;
             }
             break;
+        case LT(3, KC_ENT):
+            if (is_alternative_swap_hands && record->tap.count) {
+                if (record->event.pressed) {
+                    tap_code(KC_P);
+                }
+                return false;
+            }
+            break;
         case LT(4, KC_SPC):
-            if (!record->tap.count) {
+            if (record->tap.count) {
+                if (is_alternative_swap_hands) {
+                    if (record->event.pressed) {
+                        tap_code(KC_H);
+                    }
+                    return false;
+                }
+            } else {
                 layer4_is_held = record->event.pressed;
             }
     }
