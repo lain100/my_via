@@ -201,14 +201,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool is_swap_hands_toggle;
     static bool is_alternative_swap_hands;
 
-    static uint16_t held_count;
-
-    if (record->event.pressed) {
-        held_count++;
-    } else if (held_count > 0) {
-        held_count--;
-    }
-
     if (IS_LAYER_ON(2)) {
         caps_word_off();
     } else if (layer4_is_held) {
@@ -250,7 +242,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 } else {
                     is_swap_hands_toggle      = false;
                     is_alternative_swap_hands = true;
-                    held_count                = 0;
                     swap_hands_toggle();
                 }
             }
@@ -260,8 +251,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     procoss_pended_keys(keycode, record);
 
     if (is_alternative_swap_hands) {
-        if (!held_count) {
-            swap_hands_toggle();
+        if (IS_UNILATERAL_INPUT(record, 0x8F)) {
+            swap_hands_on();
+        } else {
+            swap_hands_off();
         }
     } else if (!is_swap_hands_toggle) {
         swap_hands_off();
@@ -371,24 +364,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 nav.type = 0;
             }
             break;
+        case LT(4, KC_SPC):
+            if (!record->tap.count) {
+                layer4_is_held = record->event.pressed;
+            }
         case LT(3, KC_ENT):
             if (is_alternative_swap_hands && record->tap.count) {
                 if (record->event.pressed) {
-                    tap_code(KC_P);
+                    tap_code(keycode == LT(4, KC_SPC) ? KC_H : KC_P);
                 }
                 return false;
-            }
-            break;
-        case LT(4, KC_SPC):
-            if (record->tap.count) {
-                if (is_alternative_swap_hands) {
-                    if (record->event.pressed) {
-                        tap_code(KC_H);
-                    }
-                    return false;
-                }
-            } else {
-                layer4_is_held = record->event.pressed;
             }
     }
     return true;
