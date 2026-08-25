@@ -348,7 +348,7 @@ Search(url) => (Send("^{c}") Sleep(200) Run(url A_Clipboard))
 
 F15:: ShowClipHistory
 F17:: Click
-F18::MButton
+F18:: Send("+{MButton}")
 F19:: Click("R")
 F20:: Send("../")
 F21:: Search("https://web.archive.org/web/")
