@@ -347,11 +347,11 @@ Tips(msg, delay := 1000) => (ToolTip(msg) SetTimer(ToolTip, -delay))
 Search(url) => (Send("^{c}") Sleep(200) Run(url A_Clipboard))
 
 F15:: ShowClipHistory
-F17:: Search("https://web.archive.org/web/")
-F18:: Send("./")
-F19:: Send("->")
+F17:: Click
+F18::MButton
+F19:: Click("R")
 F20:: Send("../")
-F21:: Click
+F21:: Search("https://web.archive.org/web/")
 F22:: Reload
 ^Esc::Esc
 #^+t:: {
