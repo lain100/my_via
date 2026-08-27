@@ -353,7 +353,6 @@ F19:: Click("R")
 F20:: Send("../")
 F21:: Search("https://web.archive.org/web/")
 F22:: Reload
-^Esc::Esc
 #^+t:: {
     TransDegree := WinGetTransparent("A")
     TransDegree := TransDegree ? TransDegree : 256

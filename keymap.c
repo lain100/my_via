@@ -68,10 +68,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (IS_EXCEPTIONAL_INPUT) {
-        return 0;
-    }
-    return QUICK_TAP_TERM;
+    return IS_EXCEPTIONAL_INPUT ? 0 : QUICK_TAP_TERM;
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
@@ -189,16 +186,16 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
         is_quick_succession_input = false;
         return;
     }
-    const bool is_row_0_to_2 = IS_UNILATERAL_INPUT(record, 0x07);
-    set_mts_mods(!is_row_0_to_2 ? &lmts : &rmts);
-    send_mts_taps(is_row_0_to_2 ? &lmts : &rmts, keycode);
+    const bool is_left_side = IS_UNILATERAL_INPUT(record, 0x07);
+    set_mts_mods(!is_left_side ? &lmts : &rmts);
+    send_mts_taps(is_left_side ? &lmts : &rmts, keycode);
 }
 
 static bool is_volkey_held;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool layer4_is_held;
-    static bool is_swap_hands_toggle;
+    static bool is_fixed_swap_hands;
     static bool is_alternative_swap_hands;
 
     if (IS_LAYER_ON(2)) {
@@ -228,21 +225,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(0, 1):
             if (record->event.pressed) {
                 if (record->tap.count == 1) {
-                    if (is_swap_hands_toggle || is_alternative_swap_hands) {
-                        is_swap_hands_toggle      = false;
-                        is_alternative_swap_hands = false;
+                    if (is_fixed_swap_hands) {
+                        is_fixed_swap_hands = false;
                         swap_hands_off();
+                    } else if (is_alternative_swap_hands) {
+                        swap_hands_toggle();
                     } else {
                         swap_hands_on();
                     }
                 } else if (record->tap.count) {
-                    is_swap_hands_toggle      = true;
+                    is_fixed_swap_hands       = true;
                     is_alternative_swap_hands = false;
                     swap_hands_on();
                 } else {
-                    is_swap_hands_toggle      = false;
-                    is_alternative_swap_hands = true;
-                    swap_hands_toggle();
+                    is_fixed_swap_hands = false;
+                    is_alternative_swap_hands ^= true;
                 }
             }
             return false;
@@ -259,7 +256,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         } else {
             swap_hands_off();
         }
-    } else if (!is_swap_hands_toggle) {
+    } else if (!is_fixed_swap_hands) {
         swap_hands_off();
     }
 
