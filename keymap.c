@@ -405,12 +405,11 @@ enum combos {
 
 #define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
 #define LCG_T(k) (MT(MOD_LCTL | MOD_LGUI, (k)))
-#define LCSA_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LALT, (k)))
 #define LCSG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LGUI, (k)))
 #define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
 
-const uint16_t PROGMEM cmb_vol[]         = {LCSA_T(KC_Z), LSA_T(KC_M), COMBO_END};
-const uint16_t PROGMEM cmb_int4[]        = {LCSA_T(KC_Z), LCA_T(KC_K), COMBO_END};
+const uint16_t PROGMEM cmb_vol[]         = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
+const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg2[] = {RCA_T(KC_C), KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
