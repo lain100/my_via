@@ -240,9 +240,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 } else {
                     is_fixed_swap_hands = false;
                     is_alternative_swap_hands ^= true;
-                    if (!is_alternative_swap_hands) {
-                        swap_hands_off();
-                    }
+                    swap_hands_off();
                 }
             }
             return false;
