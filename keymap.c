@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 
 #define IS_UNILATERAL_INPUT(r, m) ((m) & (1U << (r)->event.key.row))
-#define IS_EXCEPTIONAL_INPUT (IS_UNILATERAL_INPUT(record, 0x88) || (IS_QK_MOD_TAP(keycode) && (keycode & QK_LSFT) && !((keycode >> 8) & (MOD_HYPR & ~MOD_LSFT)) && get_highest_layer(layer_state) == 0))
+#define IS_EXCEPTIONAL_INPUT(k, r) (IS_UNILATERAL_INPUT(r, 0x88) || (IS_QK_MOD_TAP(k) && (k & QK_LSFT) && !((k >> 8) & (MOD_HYPR & ~MOD_LSFT)) && get_highest_layer(layer_state) == 0) || ((k & 0xFF) == KC_NO))
 
 typedef struct {
     uint8_t index;
@@ -43,7 +43,7 @@ uint8_t unpack_mods(uint16_t keycode) {
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
-        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
+        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record) || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
             is_quick_succession_input = IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI));
             inter_keycode             = keycode;
         }
@@ -68,7 +68,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    return IS_EXCEPTIONAL_INPUT ? 0 : QUICK_TAP_TERM;
+    return IS_EXCEPTIONAL_INPUT(keycode, record) ? 0 : QUICK_TAP_TERM;
 }
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
@@ -171,6 +171,9 @@ void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
         }
         tap_code(tap_part);
         within_word(poped_key);
+        if (QK_MOD_TAP_GET_TAP_KEYCODE(poped_key) == KC_NO) {
+            layer_move(0);
+        }
         if (poped_key == keycode) {
             return;
         }
@@ -193,6 +196,14 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
 
 static bool is_volkey_held;
 
+#define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
+#define LCG_T(k) (MT(MOD_LCTL | MOD_LGUI, (k)))
+#define LCSG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LGUI, (k)))
+#define LCSAG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LALT | MOD_LGUI, (k)))
+#define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
+#define RCG_T(k) (MT(MOD_RCTL | MOD_RGUI, (k)))
+#define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool layer4_is_held;
     static bool is_fixed_swap_hands;
@@ -211,6 +222,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 nav.type = record->event.pressed ? NAV_Tab : 0;
             }
         case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+            if (QK_MOD_TAP_GET_TAP_KEYCODE(keycode) == KC_NO && record->tap.count) {
+                if (record->event.pressed) {
+                    layer_move(get_highest_layer(layer_state) % 4 + 1);
+                }
+                return false;
+            }
             if (IS_LAYER_ON(2)) {
                 const uint8_t saved_mods = get_mods();
                 caps_word_on();
@@ -262,12 +279,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
-        case LT(0, KC_NO):
-            if (record->event.pressed) {
-                const uint8_t current_layer = get_highest_layer(layer_state) % 4;
-                layer_move(record->tap.count ? (current_layer + 1) : 0);
-            }
-            return false;
         case LT(0, 2):
             if (record->tap.count) {
                 nav.type = NAV_Tab;
@@ -403,11 +414,6 @@ enum combos {
     CMB_MS_BTN3,
 };
 
-#define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
-#define LCG_T(k) (MT(MOD_LCTL | MOD_LGUI, (k)))
-#define LCSG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LGUI, (k)))
-#define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
-
 const uint16_t PROGMEM cmb_vol[]         = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
 const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
@@ -415,10 +421,10 @@ const uint16_t PROGMEM cmb_sh_os_togg2[] = {RCA_T(KC_C), KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(0, KC_X), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_pscr[]        = {LAG_T(KC_L), LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
-const uint16_t PROGMEM cmb_os_ctl[]      = {LCSG_T(KC_D), LCG_T(KC_W), COMBO_END};
+const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {LAG_T(KC_L), LCG_T(KC_W), COMBO_END};
-const uint16_t PROGMEM cmb_os_alt[]      = {LAG_T(KC_L), LCSG_T(KC_D), COMBO_END};
-const uint16_t PROGMEM cmb_os_gui[]      = {KC_P, LAG_T(KC_L), COMBO_END};
+const uint16_t PROGMEM cmb_os_alt[]      = {LAG_T(KC_L), LSG_T(KC_D), COMBO_END};
+const uint16_t PROGMEM cmb_os_gui[]      = {LCSAG_T(KC_P), LAG_T(KC_L), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]     = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
@@ -483,14 +489,11 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 };
 #endif
 
-#define RCG_T(k) (MT(MOD_RCTL | MOD_RGUI, (k)))
-#define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
-
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    KC_P     , LAG_T(KC_L),LCSG_T(KC_D),LCG_T(KC_W) , LT(0, KC_NO),                            LT(0, KC_NO), RCG_T(KC_Q),RCSG_T(KC_O), RAG_T(KC_U) , KC_BSPC,
+    LCSAG_T(KC_P), LAG_T(KC_L),LCSG_T(KC_D),LCG_T(KC_W) , LT(0, KC_NO),                            LT(0, KC_NO), RCG_T(KC_Q),RCSG_T(KC_O), RAG_T(KC_U) , KC_BSPC,
     KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                            KC_H     , KC_J     , KC_K     , KC_L     , KC_MINS  ,
     KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     ,                            KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  ,
     KC_LCTL  , KC_LGUI  , KC_LALT  ,LSFT_T(KC_LNG2),LT(1,KC_SPC),LT(3,KC_LNG1),KC_BSPC,LT(2,KC_ENT),LSFT_T( KC_LNG2),KC_RALT,KC_RGUI, KC_RSFT),
