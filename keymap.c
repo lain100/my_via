@@ -198,10 +198,12 @@ static bool is_volkey_held;
 
 #define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
 #define LCG_T(k) (MT(MOD_LCTL | MOD_LGUI, (k)))
+#define LCSA_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LALT, (k)))
 #define LCSG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LGUI, (k)))
-#define LCSAG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LALT | MOD_LGUI, (k)))
+#define LSAG_T(k) (MT(MOD_LSFT | MOD_LALT | MOD_LGUI, (k)))
 #define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
 #define RCG_T(k) (MT(MOD_RCTL | MOD_RGUI, (k)))
+#define RCSA_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RALT, (k)))
 #define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -424,7 +426,7 @@ const uint16_t PROGMEM cmb_pscr[]        = {LAG_T(KC_L), LSG_T(KC_D), LCG_T(KC_W
 const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {LAG_T(KC_L), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_alt[]      = {LAG_T(KC_L), LSG_T(KC_D), COMBO_END};
-const uint16_t PROGMEM cmb_os_gui[]      = {LCSAG_T(KC_P), LAG_T(KC_L), COMBO_END};
+const uint16_t PROGMEM cmb_os_gui[]      = {KC_P, LAG_T(KC_L), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]     = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
@@ -493,10 +495,10 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    LCSAG_T(KC_P), LAG_T(KC_L),LCSG_T(KC_D),LCG_T(KC_W) , LT(0, KC_NO),                            LT(0, KC_NO), RCG_T(KC_Q),RCSG_T(KC_O), RAG_T(KC_U) , KC_BSPC,
-    KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                            KC_H     , KC_J     , KC_K     , KC_L     , KC_MINS  ,
-    KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     ,                            KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  ,
-    KC_LCTL  , KC_LGUI  , KC_LALT  ,LSFT_T(KC_LNG2),LT(1,KC_SPC),LT(3,KC_LNG1),KC_BSPC,LT(2,KC_ENT),LSFT_T( KC_LNG2),KC_RALT,KC_RGUI, KC_RSFT),
+    KC_P, LAG_T(KC_L),LCSG_T(KC_D),LCG_T(KC_W) , LT(0, KC_NO),                          LT(0, KC_NO), RCG_T(KC_Q),RCSG_T(KC_O), RAG_T(KC_U) , KC_BSPC,
+    LGUI_T(KC_N), LALT_T(KC_R), LSFT_T(KC_T), LCTL_T(KC_S), LCS_T(KC_G),                LT(0, KC_X), RCTL_T(KC_Y), RSFT_T(KC_A), RALT_T(KC_I), RGUI_T(KC_E),
+    LSAG_T(KC_B), LCAG_T(KC_Z), LSA_T(KC_M),  LCA_T(KC_K),  LCSA_T(KC_V),               RCSA_T(KC_J)     , RCA_T(KC_C)     ,  KC_DOT   , KC_MINUS, KC_COMM  ,
+    KC_NO, LALT( KC_PSCR),LSFT(KC_PSCR),LCTL(KC_PSCR),LT(2,KC_H),LT(3,KC_F),LT(3, KC_ENT),LT(4,KC_SPC),LCTL( KC_PSCR),LSFT(KC_PSCR),LALT(KC_PSCR), KC_NO),
 
   [1] = LAYOUT_universal(
     KC_F1    , KC_F2    , KC_F3    , KC_F4    , KC_RBRC  ,                            KC_F6    , KC_F7    , KC_F8    , KC_F9    , KC_F10   ,
