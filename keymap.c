@@ -418,7 +418,7 @@ enum combos {
 const uint16_t PROGMEM cmb_vol[]         = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
 const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
-const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_DOT, RSA_T(KC_X), COMBO_END};
+const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_COMMA, KC_MINS, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(0, KC_C), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_pscr[]        = {LAG_T(KC_L), LSG_T(KC_D), LCG_T(KC_W), COMBO_END};

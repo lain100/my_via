@@ -166,6 +166,11 @@ si	し
 su	す
 se	せ
 so	そ
+qa	くぁ
+qi	くぃ
+qu	く
+qe	くぇ
+qo	くぉ
 kwa	くぁ
 kwi	くぃ
 kwu	くぅ
