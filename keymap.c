@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "quantum.h"
 
 #define IS_UNILATERAL_INPUT(r, m) ((m) & (1U << (r)->event.key.row))
-#define IS_EXCEPTIONAL_INPUT(k, r) (IS_UNILATERAL_INPUT(r, 0x88) || (IS_QK_MOD_TAP(k) && (k & QK_LSFT) && !((k >> 8) & (MOD_HYPR & ~MOD_LSFT)) && get_highest_layer(layer_state) == 0) || ((k & 0xFF) == KC_NO))
+#define IS_EXCEPTIONAL_INPUT(k, r) (IS_UNILATERAL_INPUT(r, 0x88) || ((0x1000 | (k)) == RSFT_T(k) && get_highest_layer(layer_state) == 0))
 
 typedef struct {
     uint8_t index;
@@ -101,17 +101,17 @@ void within_word(uint16_t keycode) {
     };
     static const uint8_t null_id      = ARRAY_SIZE(brcts) - 1;
     static uint8_t       reception_id = null_id;
+    const uint8_t        saved_mods   = get_mods();
     keycode &= 0xFF;
 
     if (is_caps_word_on()) {
         caps_word_press_user(keycode);
     }
-    if (get_weak_mods() & MOD_LSFT) {
+    if ((saved_mods | get_weak_mods()) & MOD_LSFT) {
         keycode |= QK_LSFT;
     }
     clear_weak_mods();
     if (keycode == brcts[reception_id][1]) {
-        const uint8_t saved_mods = get_mods();
         clear_mods();
         tap_code(KC_LEFT);
         set_mods(saved_mods);
@@ -174,9 +174,6 @@ void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
         }
         tap_code(tap_part);
         within_word(poped_key);
-        if (QK_MOD_TAP_GET_TAP_KEYCODE(poped_key) == KC_NO) {
-            layer_move(0);
-        }
         if (poped_key == keycode) {
             return;
         }
@@ -222,17 +219,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode) {
         case LT(0, KC_3):
-        case LT(0, KC_X):
+        case LT(0, KC_C):
             if (!record->tap.count) {
                 nav.type = record->event.pressed ? NAV_Tab : 0;
             }
         case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-            if (QK_MOD_TAP_GET_TAP_KEYCODE(keycode) == KC_NO && record->tap.count) {
-                if (record->event.pressed) {
-                    layer_move(get_highest_layer(layer_state) % 4 + 1);
-                }
-                return false;
-            }
             if (IS_LAYER_ON(2)) {
                 const uint8_t saved_mods = get_mods();
                 caps_word_on();
@@ -284,6 +275,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
+        case LT(0, KC_NO):
+            if (record->event.pressed) {
+                layer_move(record->tap.count ? get_highest_layer(layer_state) % 4 + 1 : 0);
+            }
+            return false;
         case LT(0, 2):
             if (record->tap.count) {
                 nav.type = NAV_Tab;
@@ -422,9 +418,9 @@ enum combos {
 const uint16_t PROGMEM cmb_vol[]         = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
 const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
-const uint16_t PROGMEM cmb_sh_os_togg2[] = {RCA_T(KC_C), KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_DOT, RSA_T(KC_X), COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
-const uint16_t PROGMEM cmb_lng2[]        = {LT(0, KC_X), RCTL_T(KC_Y), COMBO_END};
+const uint16_t PROGMEM cmb_lng2[]        = {LT(0, KC_C), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_pscr[]        = {LAG_T(KC_L), LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {LAG_T(KC_L), LCG_T(KC_W), COMBO_END};
