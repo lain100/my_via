@@ -43,7 +43,10 @@ uint8_t unpack_mods(uint16_t keycode) {
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
-        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record) || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
+        if (IS_EXCEPTIONAL_INPUT(keycode, record)) {
+            is_quick_succession_input = false;
+            inter_keycode             = keycode;
+        } else if (tap_part > KC_Z || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
             is_quick_succession_input = IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI));
             inter_keycode             = keycode;
         }
@@ -495,13 +498,13 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    KC_P, LAG_T(KC_L),LCSG_T(KC_D),LCG_T(KC_W) , LT(0, KC_NO),                          LT(0, KC_NO), RCG_T(KC_Q),RCSG_T(KC_O), RAG_T(KC_U) , KC_BSPC,
+    KC_P, LAG_T(KC_L),LSG_T(KC_D),LCG_T(KC_W) , LCSG_T(KC_NO),                          RCSG_T(KC_NO), RCG_T(KC_Q),RSG_T(KC_O), RAG_T(KC_U) , KC_BSPC,
     LGUI_T(KC_N), LALT_T(KC_R), LSFT_T(KC_T), LCTL_T(KC_S), LCS_T(KC_G),                LT(0, KC_X), RCTL_T(KC_Y), RSFT_T(KC_A), RALT_T(KC_I), RGUI_T(KC_E),
     LSAG_T(KC_B), LCAG_T(KC_Z), LSA_T(KC_M),  LCA_T(KC_K),  LCSA_T(KC_V),               RCSA_T(KC_J)     , RCA_T(KC_C)     ,  KC_DOT   , KC_MINUS, KC_COMM  ,
     KC_NO, LALT( KC_PSCR),LSFT(KC_PSCR),LCTL(KC_PSCR),LT(2,KC_H),LT(3,KC_F),LT(3, KC_ENT),LT(4,KC_SPC),LCTL( KC_PSCR),LSFT(KC_PSCR),LALT(KC_PSCR), KC_NO),
 
   [1] = LAYOUT_universal(
-    KC_F1    , KC_F2    , KC_F3    , KC_F4    , KC_RBRC  ,                            KC_F6    , KC_F7    , KC_F8    , KC_F9    , KC_F10   ,
+    KC_Q    , KC_X    , KC_K    , KC_Z    , 0x01  ,                            0x01    , KC_Z    , KC_W    , KC_X    , KC_Q   ,
     KC_F5    , KC_EXLM  , S(KC_6)  ,S(KC_INT3), S(KC_8)  ,                           S(KC_INT1), KC_BTN1  , KC_PGUP  , KC_BTN2  , KC_SCLN  ,
     S(KC_EQL),S(KC_LBRC),S(KC_7)   , S(KC_2)  ,S(KC_RBRC),                            KC_LBRC  , KC_DLR   , KC_PGDN  , KC_BTN3  , KC_F11   ,
     KC_INT1  , KC_EQL   , S(KC_3)  , _______  , _______  , _______  ,      TO(2)    , TO(0)    , _______  , KC_RALT  , KC_RGUI  , KC_F12),
