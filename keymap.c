@@ -71,6 +71,9 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
+    if (keycode == LT(3, KC_BSPC)) {
+        return QUICK_TAP_TERM;
+    }
     return IS_EXCEPTIONAL_INPUT(keycode, record) ? 0 : QUICK_TAP_TERM;
 }
 
@@ -205,6 +208,7 @@ static bool is_volkey_held;
 #define RCG_T(k) (MT(MOD_RCTL | MOD_RGUI, (k)))
 #define RCSA_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RALT, (k)))
 #define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
+#define RSAG_T(k) (MT(MOD_RSFT | MOD_RALT | MOD_RGUI, (k)))
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool layer4_is_held;
@@ -381,7 +385,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (!record->tap.count) {
                 layer4_is_held = record->event.pressed;
             }
-        case LT(3, KC_ENT):
+        case LT(3, KC_BSPC):
             if (is_alternative_swap_hands && record->tap.count) {
                 if (record->event.pressed) {
                     tap_code(keycode == LT(4, KC_SPC) ? KC_H : KC_F);
@@ -494,28 +498,34 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for default (VIA)
   [0] = LAYOUT_universal(
-    KC_P, LAG_T(KC_L),LSG_T(KC_D),LCG_T(KC_W) , LCSG_T(KC_NO),                          RCSG_T(KC_NO), RCG_T(KC_Q),RSG_T(KC_O), RAG_T(KC_U) , KC_BSPC,
-    LGUI_T(KC_N), LALT_T(KC_R), LSFT_T(KC_T), LCTL_T(KC_S), LCS_T(KC_G),                LT(0, KC_X), RCTL_T(KC_Y), RSFT_T(KC_A), RALT_T(KC_I), RGUI_T(KC_E),
-    LSAG_T(KC_B), LCAG_T(KC_Z), LSA_T(KC_M),  LCA_T(KC_K),  LCSA_T(KC_V),               RCSA_T(KC_J)     , RCA_T(KC_C)     ,  KC_DOT   , KC_MINUS, KC_COMM  ,
-    KC_NO, LALT( KC_PSCR),LSFT(KC_PSCR),LCTL(KC_PSCR),LT(2,KC_H),LT(3,KC_F),LT(3, KC_ENT),LT(4,KC_SPC),LCTL( KC_PSCR),LSFT(KC_PSCR),LALT(KC_PSCR), KC_NO),
+    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q),                                 RCSG_T(KC_Q),RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RSAG_T(KC_X)   ,
+    LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G) ,                                 LT(0,KC_C)  ,RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
+    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V),                                 KC_ENT      ,KC_COMM       ,KC_MINUS       ,KC_DOT        ,KC_SCLN        ,
+    LT(0,KC_NO)   ,LALT(KC_PSCR),LSFT(KC_PSCR),LCTL(KC_PSCR),LT(2,KC_H)  ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),RCTL( KC_PSCR),RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(0,KC_NO))   ,
 
   [1] = LAYOUT_universal(
-    KC_Q    , KC_X    , KC_K    , KC_Z    , 0x01  ,                            0x01    , KC_Z    , KC_W    , KC_X    , KC_Q   ,
-    KC_F5    , KC_EXLM  , S(KC_6)  ,S(KC_INT3), S(KC_8)  ,                           S(KC_INT1), KC_BTN1  , KC_PGUP  , KC_BTN2  , KC_SCLN  ,
-    S(KC_EQL),S(KC_LBRC),S(KC_7)   , S(KC_2)  ,S(KC_RBRC),                            KC_LBRC  , KC_DLR   , KC_PGDN  , KC_BTN3  , KC_F11   ,
-    KC_INT1  , KC_EQL   , S(KC_3)  , _______  , _______  , _______  ,      TO(2)    , TO(0)    , _______  , KC_RALT  , KC_RGUI  , KC_F12),
+    KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_W           ,KC_X          ,KC_P           ,
+    KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_A          ,KC_S           ,KC_D          ,KC_E           ,
+    KC_B          ,KC_R         ,KC_T         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_T           ,KC_R          ,KC_B           ,
+    _______       ,_______      ,_______      ,_______      ,_______     ,KC_LCTL   ,KC_LSFT      ,KC_SPC      ,_______       ,_______        ,_______       ,_______    )   ,
 
   [2] = LAYOUT_universal(
-    KC_TAB   , KC_7     , KC_8     , KC_9     , KC_MINS  ,                            KC_NUHS  , _______  , KC_BTN3  , _______  , KC_BSPC  ,
-   S(KC_QUOT), KC_4     , KC_5     , KC_6     ,S(KC_SCLN),                            S(KC_9)  , KC_BTN1  , KC_UP    , KC_BTN2  , KC_QUOT  ,
-    KC_SLSH  , KC_1     , KC_2     , KC_3     ,S(KC_MINS),                           S(KC_NUHS), KC_LEFT  , KC_DOWN  , KC_RGHT  , _______  ,
-    KC_ESC   , KC_0     , KC_DOT   , KC_DEL   , KC_ENT   , KC_BSPC  ,      _______  , _______  , _______  , _______  , _______  , _______),
+    KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
+    KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END      ,                                 LT(0,KC_3)  ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
+    LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5) ,                                 KC_ENT      ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,KC_BSLS        ,
+    _______       ,_______      ,_______      ,_______      ,_______     ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
 
   [3] = LAYOUT_universal(
-    RGB_TOG  , AML_TO   , AML_I50  , AML_D50  , _______  ,                            _______  , _______  , SSNP_HOR , SSNP_VRT , SSNP_FRE ,
-    RGB_MOD  , RGB_HUI  , RGB_SAI  , RGB_VAI  , SCRL_DVI ,                            _______  , _______  , _______  , _______  , _______  ,
-    RGB_RMOD , RGB_HUD  , RGB_SAD  , RGB_VAD  , SCRL_DVD ,                            CPI_D1K  , CPI_D100 , CPI_I100 , CPI_I1K  , KBC_SAVE ,
-    QK_BOOT  , KBC_RST  , _______  , _______  , _______  , _______  ,      _______  , _______  , _______  , _______  , KBC_RST  , QK_BOOT),
+    KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD     ,                                 KC_WFWD     ,KC_F13        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
+    LGUI_T(KC_F10),LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11      ,                                 KC_F21      ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
+    KC_F12        ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)  ,                                 KC_WHOM     ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
+    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,_______      ,_______     ,_______       ,_______        ,_______       ,_______)       ,
+
+  [4] = LAYOUT_universal(
+    KC_BSPC       ,KC_1         ,KC_2         ,KC_3         ,KC_DEL      ,                                 KC_DEL      ,S(KC_COMM)    ,KC_EQL         ,S(KC_DOT)     ,KC_BSPC        ,
+    KC_0          ,KC_4         ,KC_5         ,KC_6         ,S(KC_4)     ,                                 S(KC_7)     ,S(KC_EQL)     ,KC_SLSH        ,S(KC_8)       ,S(KC_5)        ,
+    S(KC_2)       ,KC_7         ,KC_8         ,KC_9         ,KC_DOT      ,                                 S(KC_BSLS)  ,S(KC_1)       ,S(KC_SLSH)     ,S(KC_GRV)     ,S(KC_6)        ,
+    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,_______      ,_______     ,_______       ,_______        ,_______       ,_______)       ,
 };
 // clang-format on
 
