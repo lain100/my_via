@@ -65,14 +65,19 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
     }
     if (IS_QK_LAYER_TAP(keycode) && QK_LAYER_TAP_GET_LAYER(keycode) == 4) {
-        keyball_set_scroll_mode(record->event.pressed);
+        if (record->event.pressed) {
+            keyball_set_scroll_mode(true);
+        } else if (record->tap.count) {
+            keyball_set_scroll_mode(false);
+        }
     }
     return true;
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    if (keycode == LT(3, KC_BSPC)) {
-        return QUICK_TAP_TERM;
+    switch (keycode) {
+        case LT(3, KC_BSPC):
+            return QUICK_TAP_TERM;
     }
     return IS_EXCEPTIONAL_INPUT(keycode, record) ? 0 : QUICK_TAP_TERM;
 }
@@ -228,6 +233,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
+        case LT(0, 2):
+            if (record->tap.count) {
+                if (!record->event.pressed) {
+                    oneshot_ignore_key_release = true;
+                }
+            } else {
+                is_volkey_held = record->event.pressed;
+            }
+            return false;
         case LT(0, KC_3):
         case LT(0, KC_C):
             if (!record->tap.count) {
@@ -285,19 +299,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
-        case LT(0, KC_NO):
-            if (record->event.pressed) {
-                layer_move(record->tap.count ? get_highest_layer(layer_state) % 4 + 1 : 0);
-            }
-            return false;
-        case LT(0, 2):
-            if (record->tap.count) {
-                if (!record->event.pressed) {
-                    oneshot_ignore_key_release = true;
-                }
-            } else {
-                is_volkey_held = record->event.pressed;
-            }
+        case KC_NO:
+            layer_clear();
             return false;
         case LT(0, KC_F1):
             nav.type = NAV_UndR;
@@ -411,9 +414,9 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 enum combos {
+    CMB_INT4,
     CMB_VOL1,
     CMB_VOL2,
-    CMB_INT4,
     CMB_SH_OS_TOGG1,
     CMB_SH_OS_TOGG2,
     CMB_LNG1,
@@ -428,9 +431,9 @@ enum combos {
     CMB_MS_BTN3,
 };
 
+const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_vol1[]        = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
 const uint16_t PROGMEM cmb_vol2[]        = {KC_MINS, KC_DOT, COMBO_END};
-const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_COMMA, KC_MINS, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
@@ -445,7 +448,7 @@ const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_EN
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
 
 combo_t key_combos[] = {
-    [CMB_VOL1] = COMBO(cmb_vol1, LT(0, 2)), [CMB_VOL2] = COMBO(cmb_vol2, LT(0, 2)), [CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(0, 1)), [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)), [CMB_LNG1] = COMBO(cmb_lng1, LT(0, KC_LNG1)), [CMB_LNG2] = COMBO(cmb_lng2, LT(0, KC_LNG2)), [CMB_PSCR] = COMBO(cmb_pscr, KC_PSCR), [CMB_OS_CTL] = COMBO(cmb_os_ctl, OSM(MOD_LCTL)), [CMB_OS_SFT] = COMBO(cmb_os_sft, OSM(MOD_LSFT)), [CMB_OS_ALT] = COMBO(cmb_os_alt, OSM(MOD_LALT)), [CMB_OS_GUI] = COMBO(cmb_os_gui, OSM(MOD_LGUI)), [CMB_MS_BTN1] = COMBO(cmb_ms_btn1, KC_MS_BTN1), [CMB_MS_BTN2] = COMBO(cmb_ms_btn2, KC_MS_BTN2), [CMB_MS_BTN3] = COMBO(cmb_ms_btn3, KC_MS_BTN3),
+    [CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_VOL1] = COMBO(cmb_vol1, LT(0, 2)), [CMB_VOL2] = COMBO(cmb_vol2, LT(0, 2)), [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(0, 1)), [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)), [CMB_LNG1] = COMBO(cmb_lng1, LT(0, KC_LNG1)), [CMB_LNG2] = COMBO(cmb_lng2, LT(0, KC_LNG2)), [CMB_PSCR] = COMBO(cmb_pscr, KC_PSCR), [CMB_OS_CTL] = COMBO(cmb_os_ctl, OSM(MOD_LCTL)), [CMB_OS_SFT] = COMBO(cmb_os_sft, OSM(MOD_LSFT)), [CMB_OS_ALT] = COMBO(cmb_os_alt, OSM(MOD_LALT)), [CMB_OS_GUI] = COMBO(cmb_os_gui, OSM(MOD_LGUI)), [CMB_MS_BTN1] = COMBO(cmb_ms_btn1, KC_MS_BTN1), [CMB_MS_BTN2] = COMBO(cmb_ms_btn2, KC_MS_BTN2), [CMB_MS_BTN3] = COMBO(cmb_ms_btn3, KC_MS_BTN3),
 };
 
 bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode, keyrecord_t *record) {
@@ -511,22 +514,22 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q),                                 RCSG_T(KC_Q),RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RSAG_T(KC_X)   ,
     LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G) ,                                 LT(0,KC_C)  ,RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
     LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V),                                 KC_ENT      ,KC_COMM       ,KC_MINUS       ,KC_DOT        ,KC_SCLN        ,
-    LT(0,KC_NO)   ,LALT(KC_PSCR),LSFT(KC_PSCR),LCTL(KC_PSCR),LT(2,KC_H)  ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),RCTL( KC_PSCR),RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(0,KC_NO))   ,
+    KC_NO         ,LALT(KC_PSCR),LSFT(KC_PSCR),LCTL(KC_PSCR),LT(2,KC_H)  ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),RCTL( KC_PSCR),RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,KC_NO)         ,
 
   [1] = LAYOUT_universal(
     KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_W           ,KC_X          ,KC_P           ,
     KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_A          ,KC_S           ,KC_D          ,KC_E           ,
     KC_B          ,KC_R         ,KC_T         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_T           ,KC_R          ,KC_B           ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,KC_LCTL   ,KC_LSFT      ,KC_SPC      ,_______       ,_______        ,_______       ,_______    )   ,
+    _______       ,_______      ,_______      ,_______      ,_______     ,KC_LCTL   ,KC_LSFT      ,KC_SPC      ,_______       ,_______        ,_______       ,_______)       ,
 
   [2] = LAYOUT_universal(
     KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
     KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END      ,                                 LT(0,KC_3)  ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
     LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5) ,                                 KC_ENT      ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,KC_BSLS        ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
+    _______       ,_______      ,_______      ,_______      ,TO(1)       ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
 
   [3] = LAYOUT_universal(
-    KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD     ,                                 KC_WFWD     ,KC_F13        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
+    KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD     ,                                 KC_WFWD     ,KC_F16        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
     LGUI_T(KC_F10),LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11      ,                                 KC_F21      ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
     KC_F12        ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)  ,                                 KC_WHOM     ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
     _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,_______      ,_______     ,_______       ,_______        ,_______       ,_______)       ,
