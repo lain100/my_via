@@ -64,12 +64,8 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
             record->tap.count++;
         }
     }
-    if (IS_QK_LAYER_TAP(keycode) && QK_LAYER_TAP_GET_LAYER(keycode) == 4) {
-        if (record->event.pressed) {
-            keyball_set_scroll_mode(true);
-        } else if (record->tap.count) {
-            keyball_set_scroll_mode(false);
-        }
+    if (keycode == LT(4, keycode)) {
+        keyball_set_scroll_mode(record->event.pressed);
     }
     return true;
 }
@@ -223,6 +219,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     if (oneshot_ignore_key_release && !record->event.pressed) {
         oneshot_ignore_key_release = false;
+        if (keycode == LT(4, keycode)) {
+            layer4_is_held = false;
+            if (!record->tap.count) {
+                keyball_set_scroll_mode(true);
+            }
+        }
         return false;
     }
 
@@ -545,9 +547,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 layer_state_t layer_state_set_user(layer_state_t state) {
     // Auto enable scroll mode when the highest layer is 4
     keyball_set_scroll_mode(get_highest_layer(state) == 4);
-#ifdef POINTING_DEVICE_AUTO_MOUSE_ENABLE
-    keyball_handle_auto_mouse_layer_change(state);
-#endif
     return state;
 }
 
