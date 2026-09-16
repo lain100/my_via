@@ -100,9 +100,18 @@ typedef struct {
 static morph_key_t nav;
 
 void within_word(uint16_t keycode) {
+    // clang-format off
     static const uint16_t brcts[][2] = {
-        {S(KC_QUOT), S(KC_QUOT)}, {S(KC_LBRC), S(KC_RBRC)}, {S(KC_COMM), S(KC_DOT)}, {S(KC_9), S(KC_0)}, {KC_QUOT, KC_QUOT}, {KC_LBRC, KC_RBRC}, {KC_GRV, KC_GRV}, {0, -1},
+        {S(KC_QUOT), S(KC_QUOT)},
+        {S(KC_LBRC), S(KC_RBRC)},
+        {S(KC_COMM), S(KC_DOT)},
+        {S(KC_9), S(KC_0)},
+        {KC_QUOT, KC_QUOT},
+        {KC_LBRC, KC_RBRC},
+        {KC_GRV, KC_GRV},
+        {0, -1},
     };
+    // clang-format on
     static const uint8_t null_id      = ARRAY_SIZE(brcts) - 1;
     static uint8_t       reception_id = null_id;
     const uint8_t        saved_mods   = get_mods();
@@ -449,9 +458,25 @@ const uint16_t PROGMEM cmb_ms_btn1[]     = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_EN
 const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
 
+// clang-format off
 combo_t key_combos[] = {
-    [CMB_INT4] = COMBO(cmb_int4, KC_INT4), [CMB_VOL1] = COMBO(cmb_vol1, LT(0, 2)), [CMB_VOL2] = COMBO(cmb_vol2, LT(0, 2)), [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(0, 1)), [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)), [CMB_LNG1] = COMBO(cmb_lng1, LT(0, KC_LNG1)), [CMB_LNG2] = COMBO(cmb_lng2, LT(0, KC_LNG2)), [CMB_PSCR] = COMBO(cmb_pscr, KC_PSCR), [CMB_OS_CTL] = COMBO(cmb_os_ctl, OSM(MOD_LCTL)), [CMB_OS_SFT] = COMBO(cmb_os_sft, OSM(MOD_LSFT)), [CMB_OS_ALT] = COMBO(cmb_os_alt, OSM(MOD_LALT)), [CMB_OS_GUI] = COMBO(cmb_os_gui, OSM(MOD_LGUI)), [CMB_MS_BTN1] = COMBO(cmb_ms_btn1, KC_MS_BTN1), [CMB_MS_BTN2] = COMBO(cmb_ms_btn2, KC_MS_BTN2), [CMB_MS_BTN3] = COMBO(cmb_ms_btn3, KC_MS_BTN3),
+    [CMB_INT4]        = COMBO(cmb_int4, KC_INT4),
+    [CMB_VOL1]        = COMBO(cmb_vol1, LT(0, 2)),
+    [CMB_VOL2]        = COMBO(cmb_vol2, LT(0, 2)),
+    [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(0, 1)),
+    [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)),
+    [CMB_LNG1]        = COMBO(cmb_lng1, LT(0, KC_LNG1)),
+    [CMB_LNG2]        = COMBO(cmb_lng2, LT(0, KC_LNG2)),
+    [CMB_PSCR]        = COMBO(cmb_pscr, KC_PSCR),
+    [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
+    [CMB_OS_SFT]      = COMBO(cmb_os_sft, OSM(MOD_LSFT)),
+    [CMB_OS_ALT]      = COMBO(cmb_os_alt, OSM(MOD_LALT)),
+    [CMB_OS_GUI]      = COMBO(cmb_os_gui, OSM(MOD_LGUI)),
+    [CMB_MS_BTN1]     = COMBO(cmb_ms_btn1, KC_MS_BTN1),
+    [CMB_MS_BTN2]     = COMBO(cmb_ms_btn2, KC_MS_BTN2),
+    [CMB_MS_BTN3]     = COMBO(cmb_ms_btn3, KC_MS_BTN3),
 };
+// clang-format on
 
 bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode, keyrecord_t *record) {
     switch (combo_index) {
@@ -503,15 +528,22 @@ report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     return mouse_report;
 }
 
+// clang-format off
 #ifdef SWAP_HANDS_ENABLE
 __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRIX_COLS] = {
-    {{0, 4}, {1, 4}, {2, 4}, {3, 4}, {4, 4}, {5, 4}}, {{0, 5}, {1, 5}, {2, 5}, {3, 5}, {4, 5}, {5, 5}}, {{0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}}, {{0, 7}, {1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}}, {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}}, {{0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}}, {{0, 2}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}}, {{0, 3}, {1, 3}, {2, 3}, {3, 3}, {4, 3}, {5, 3}},
+    {{0, 4}, {1, 4}, {2, 4}, {3, 4}, {4, 4}, {5, 4}},
+    {{0, 5}, {1, 5}, {2, 5}, {3, 5}, {4, 5}, {5, 5}},
+    {{0, 6}, {1, 6}, {2, 6}, {3, 6}, {4, 6}, {5, 6}},
+    {{0, 7}, {1, 7}, {2, 7}, {3, 7}, {4, 7}, {5, 7}},
+    {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}},
+    {{0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {5, 1}},
+    {{0, 2}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}},
+    {{0, 3}, {1, 3}, {2, 3}, {3, 3}, {4, 3}, {5, 3}},
 };
 #endif
 
-// clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  // keymap for default (VIA)
+  // keymap for VIA
   [0] = LAYOUT_universal(
     KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q),                                 RCSG_T(KC_Q),RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RSAG_T(KC_X)   ,
     LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G) ,                                 LT(0,KC_C)  ,RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
