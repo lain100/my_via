@@ -351,7 +351,7 @@ F17:: Click
 F18:: Send("+{MButton}")
 F19:: Click("R")
 F20:: Send("../")
-F21:: Search("https://web.archive.org/web/")
+F21:: Search("https://www.google.com/search?q=")
 F22:: Reload
 #^+t:: {
     TransDegree := WinGetTransparent("A")

@@ -89,7 +89,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
-enum navkey_types { NAV_UndR = 1, NAV_Tab };
+enum navkey_types { NAV_UndR = 1, NAV_Tab, NAV_ASDW };
 
 typedef struct {
     uint8_t keycode;
@@ -244,15 +244,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
-        case LT(0, 2):
-            if (record->tap.count) {
-                if (!record->event.pressed) {
-                    oneshot_ignore_key_release = true;
-                }
-            } else {
-                is_volkey_held = record->event.pressed;
-            }
-            return false;
         case LT(0, KC_3):
         case LT(0, KC_C):
             if (!record->tap.count) {
@@ -270,6 +261,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false;
             }
             break;
+        case LT(0, KC_NO):
+            if (record->tap.count) {
+                if (!record->event.pressed) {
+                    oneshot_ignore_key_release = true;
+                }
+            } else {
+                is_volkey_held = record->event.pressed;
+            }
+            return false;
         case LT(0, 1):
             if (record->event.pressed) {
                 if (record->tap.count == 1) {
@@ -310,9 +310,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     switch (keycode) {
-        case KC_NO:
-            layer_clear();
-            return false;
         case LT(0, KC_F1):
             nav.type = NAV_UndR;
             return false;
@@ -361,6 +358,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(KC_SLSH);
             }
             return false;
+        case KC_DOWN ... KC_UP:
+            if (nav.type != NAV_ASDW) {
+                return true;
+            }
         case KC_RGHT ... KC_LEFT:
             if (nav.registered) {
                 nav.registered = false;
@@ -385,6 +386,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                                 nav.keycode = KC_TAB;
                         }
                         break;
+                    case NAV_ASDW:
+                        switch (keycode) {
+                            case KC_RGHT:
+                                nav.keycode = KC_D;
+                                break;
+                            case KC_LEFT:
+                                nav.keycode = KC_A;
+                                break;
+                            case KC_DOWN:
+                                nav.keycode = KC_S;
+                                break;
+                            case KC_UP:
+                                nav.keycode = KC_W;
+                        }
+                        break;
                     default:
                         return true;
                 }
@@ -392,15 +408,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 set_mods(saved_mods);
                 nav.registered = true;
                 return false;
-            }
-            break;
-        case LT(2, KC_H):
-            if (IS_LAYER_OFF(1)) {
-                layer_clear();
-            }
-            if (!record->event.pressed && !record->tap.count) {
-                unregister_mods(MOD_HYPR);
-                nav.type = 0;
             }
             break;
         case LT(4, KC_SPC):
@@ -414,6 +421,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
                 return false;
             }
+            break;
+        case LT(2, KC_H):
+        case KC_NO:
+            layer_clear();
+            if (!record->event.pressed && !record->tap.count) {
+                unregister_mods(MOD_HYPR);
+                nav.type = 0;
+            }
+            break;
+        case LT(2, KC_NO):
+            if (record->event.pressed && record->tap.count) {
+                nav.type = nav.type == NAV_ASDW ? 0 : NAV_ASDW;
+            }
+            break;
     }
     return true;
 }
@@ -461,8 +482,8 @@ const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_EN
 // clang-format off
 combo_t key_combos[] = {
     [CMB_INT4]        = COMBO(cmb_int4, KC_INT4),
-    [CMB_VOL1]        = COMBO(cmb_vol1, LT(0, 2)),
-    [CMB_VOL2]        = COMBO(cmb_vol2, LT(0, 2)),
+    [CMB_VOL1]        = COMBO(cmb_vol1, LT(0, KC_NO)),
+    [CMB_VOL2]        = COMBO(cmb_vol2, LT(0, KC_NO)),
     [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(0, 1)),
     [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(0, KC_LNG1)),
@@ -552,10 +573,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_NO         ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(2,KC_H)  ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,KC_NO)         ,
 
   [1] = LAYOUT_universal(
-    KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_W           ,KC_X          ,KC_P           ,
-    KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_A          ,KC_S           ,KC_D          ,KC_E           ,
-    KC_B          ,KC_R         ,KC_T         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_T           ,KC_R          ,KC_B           ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,KC_LCTL   ,KC_LSFT      ,KC_SPC      ,_______       ,_______        ,_______       ,_______)       ,
+    KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_UP          ,KC_X          ,KC_P           ,
+    KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_LEFT       ,KC_DOWN        ,KC_RGHT       ,KC_E           ,
+    KC_B          ,KC_R         ,KC_M         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
+    _______       ,_______      ,_______      ,_______      ,LT(2,KC_NO) ,KC_LCTL   ,KC_LSFT      ,KC_SPC      ,_______       ,_______        ,_______       ,_______)       ,
 
   [2] = LAYOUT_universal(
     KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
