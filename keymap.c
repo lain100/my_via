@@ -495,7 +495,6 @@ uint8_t combo_ref_from_layer(uint8_t layer) {
 bool caps_word_press_user(uint16_t keycode) {
     switch (keycode) {
         case KC_A ... KC_Z:
-        case KC_MINS:
             add_weak_mods(MOD_LSFT);
             return true;
         case KC_QUOT:
@@ -511,6 +510,8 @@ bool caps_word_press_user(uint16_t keycode) {
         case KC_DEL:
         case KC_BSPC:
         case KC_SLSH:
+        case KC_MINS:
+        case S(KC_MINS):
             return true;
     }
     return false;
@@ -547,8 +548,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_universal(
     KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q),                                 RCSG_T(KC_Q),RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RSAG_T(KC_X)   ,
     LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G) ,                                 LT(0,KC_C)  ,RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V),                                 KC_ENT      ,KC_COMM       ,KC_MINUS       ,KC_DOT        ,KC_SCLN        ,
-    KC_NO         ,LALT(KC_PSCR),LSFT(KC_PSCR),LCTL(KC_PSCR),LT(2,KC_H)  ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),RCTL( KC_PSCR),RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,KC_NO)         ,
+    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V),                                 S(KC_MINS)  ,KC_COMM       ,KC_MINS        ,KC_DOT        ,KC_SCLN        ,
+    KC_NO         ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(2,KC_H)  ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,KC_NO)         ,
 
   [1] = LAYOUT_universal(
     KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_W           ,KC_X          ,KC_P           ,
@@ -559,7 +560,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [2] = LAYOUT_universal(
     KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
     KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END      ,                                 LT(0,KC_3)  ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
-    LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5) ,                                 KC_ENT      ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,KC_BSLS        ,
+    LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5) ,                                 KC_BSLS     ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,S(KC_2)        ,
     _______       ,_______      ,_______      ,_______      ,TO(1)       ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
 
   [3] = LAYOUT_universal(
