@@ -397,7 +397,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                             case KC_DOWN:
                                 nav.keycode = KC_S;
                                 break;
-                            case KC_UP:
+                            default:
                                 nav.keycode = KC_W;
                         }
                         break;
@@ -423,18 +423,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         case LT(2, KC_H):
+            if (IS_LAYER_ON(1)) {
+                if (record->tap.count) {
+                    if (record->event.pressed) {
+                        nav.type = nav.type ? 0 : NAV_ASDW;
+                    }
+                    return false;
+                } else {
+                    return true;
+                }
+            }
         case KC_NO:
             layer_clear();
             if (!record->event.pressed && !record->tap.count) {
                 unregister_mods(MOD_HYPR);
                 nav.type = 0;
             }
-            break;
-        case LT(2, KC_NO):
-            if (record->event.pressed && record->tap.count) {
-                nav.type = nav.type == NAV_ASDW ? 0 : NAV_ASDW;
-            }
-            break;
     }
     return true;
 }
@@ -576,13 +580,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_UP          ,KC_X          ,KC_P           ,
     KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_LEFT       ,KC_DOWN        ,KC_RGHT       ,KC_E           ,
     KC_B          ,KC_R         ,KC_M         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
-    _______       ,_______      ,_______      ,_______      ,LT(2,KC_NO) ,KC_LCTL   ,KC_LSFT      ,KC_SPC      ,_______       ,_______        ,_______       ,_______)       ,
+    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,KC_LSFT      ,KC_SPC      ,KC_LCTL       ,_______        ,_______       ,_______)       ,
 
   [2] = LAYOUT_universal(
     KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
     KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END      ,                                 LT(0,KC_3)  ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
     LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5) ,                                 KC_BSLS     ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,S(KC_2)        ,
-    _______       ,_______      ,_______      ,_______      ,TO(1)       ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
+    _______       ,_______      ,_______      ,_______      ,TO(1)       ,_______   ,LT(3,KC_BSPC),LT(4,KC_SPC),KC_ENT        ,_______        ,_______       ,_______)       ,
 
   [3] = LAYOUT_universal(
     KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD     ,                                 KC_WFWD     ,KC_F16        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
