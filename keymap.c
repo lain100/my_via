@@ -72,6 +72,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
+        case LT(0, 2):
         case LT(3, KC_BSPC):
             return QUICK_TAP_TERM;
     }
