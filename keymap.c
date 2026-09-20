@@ -422,17 +422,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false;
             }
             break;
-        case LT(2, KC_H):
-            if (IS_LAYER_ON(1)) {
-                if (record->tap.count) {
-                    if (record->event.pressed) {
-                        nav.type = nav.type ? 0 : NAV_ASDW;
-                    }
-                    return false;
-                } else {
-                    return true;
-                }
+        case LT(0, 2):
+            if (record->tap.count) {
+                nav.type = record->tap.count > 1 ? NAV_ASDW : 0;
+                return false;
             }
+        case LT(2, KC_H):
         case KC_NO:
             layer_clear();
             if (!record->event.pressed && !record->tap.count) {
@@ -580,7 +575,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_UP          ,KC_X          ,KC_P           ,
     KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_LEFT       ,KC_DOWN        ,KC_RGHT       ,KC_E           ,
     KC_B          ,KC_R         ,KC_M         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,KC_LSFT      ,KC_SPC      ,KC_LCTL       ,_______        ,_______       ,_______)       ,
+    LT(0,2)       ,_______      ,_______      ,_______      ,LT(2,KC_ENT),_______   ,KC_LSFT      ,KC_SPC      ,KC_LCTL       ,_______        ,_______       ,LT(0,2))       ,
 
   [2] = LAYOUT_universal(
     KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
