@@ -575,13 +575,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_UP          ,KC_X          ,KC_P           ,
     KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_LEFT       ,KC_DOWN        ,KC_RGHT       ,KC_E           ,
     KC_B          ,KC_R         ,KC_M         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
-    _______       ,_______      ,_______      ,_______      ,LT(2,KC_ENT),_______   ,KC_LSFT      ,KC_SPC      ,KC_LCTL       ,_______        ,_______       ,_______)       ,
+    _______       ,_______      ,_______      ,_______      ,LT(2,KC_SPC),_______   ,LT(3,KC_F)   ,KC_SPC      ,_______       ,_______        ,_______       ,_______)       ,
 
   [2] = LAYOUT_universal(
     KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
     KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END      ,                                 LT(0,KC_3)  ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
     LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5) ,                                 KC_BSLS     ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,S(KC_2)        ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,LT(3,KC_BSPC),LT(4,KC_SPC),KC_ENT        ,_______        ,_______       ,_______)       ,
+    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,LT(3,KC_BSPC),LT(4,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
 
   [3] = LAYOUT_universal(
     KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD     ,                                 KC_WFWD     ,KC_F16        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
