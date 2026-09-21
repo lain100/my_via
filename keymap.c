@@ -19,8 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include QMK_KEYBOARD_H // IWYU pragma: keep
 #include "quantum.h"
 
+enum keymap_layers {
+    _BS,
+    _GM,
+    _NV,
+    _FN,
+    _SY,
+};
+
 #define IS_UNILATERAL_INPUT(r, m) ((m) & (1U << (r)->event.key.row))
-#define IS_EXCEPTIONAL_INPUT(k, r) (IS_UNILATERAL_INPUT(r, 0x88) || ((0x1000 | (k)) == RSFT_T(k) && get_highest_layer(layer_state) == 0))
+#define IS_EXCEPTIONAL_INPUT(k, r) (IS_UNILATERAL_INPUT(r, 0x88) || ((0x1000 | (k)) == RSFT_T(k) && get_highest_layer(layer_state) == _BS))
 
 typedef struct {
     uint8_t index;
@@ -64,17 +72,15 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
             record->tap.count++;
         }
     }
-    if (keycode == LT(4, keycode)) {
+    if (keycode == LT(_SY, keycode)) {
         keyball_set_scroll_mode(record->event.pressed);
     }
     return true;
 }
 
 uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    switch (keycode) {
-        case LT(1, KC_NO):
-        case LT(3, KC_BSPC):
-            return QUICK_TAP_TERM;
+    if (keycode == LT(_GM, keycode) || keycode == LT(_FN, keycode)) {
+        return QUICK_TAP_TERM;
     }
     return IS_EXCEPTIONAL_INPUT(keycode, record) ? 0 : QUICK_TAP_TERM;
 }
@@ -90,7 +96,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     return false;
 }
 
-enum navkey_types { NAV_UndR = 1, NAV_Tab, NAV_ASDW };
+enum navkey_types { NAV_UndR = 1, NAV_Tab, NAV_WASD };
 
 typedef struct {
     uint8_t keycode;
@@ -208,8 +214,6 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
     send_mts_taps(is_left_side ? &lmts : &rmts, keycode);
 }
 
-static bool is_volkey_held;
-
 #define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
 #define LCG_T(k) (MT(MOD_LCTL | MOD_LGUI, (k)))
 #define LCSA_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LALT, (k)))
@@ -221,16 +225,18 @@ static bool is_volkey_held;
 #define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
 #define RSAG_T(k) (MT(MOD_RSFT | MOD_RALT | MOD_RGUI, (k)))
 
+static bool is_volkey_held;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    static bool layer4_is_held;
+    static bool is_layer_SY_held;
     static bool is_fixed_swap_hands;
     static bool is_alternative_swap_hands;
     static bool oneshot_ignore_key_release;
 
     if (oneshot_ignore_key_release && !record->event.pressed) {
         oneshot_ignore_key_release = false;
-        if (keycode == LT(4, keycode)) {
-            layer4_is_held = false;
+        if (keycode == LT(_SY, keycode)) {
+            is_layer_SY_held = false;
             if (!record->tap.count) {
                 keyball_set_scroll_mode(true);
             }
@@ -238,10 +244,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
-    if (IS_LAYER_ON(2)) {
+    if (IS_LAYER_ON(_NV)) {
         caps_word_off();
-    } else if (layer4_is_held) {
-        layer_on(4);
+    } else if (is_layer_SY_held) {
+        layer_on(_SY);
     }
 
     switch (keycode) {
@@ -251,7 +257,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 nav.type = record->event.pressed ? NAV_Tab : 0;
             }
         case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-            if (IS_LAYER_ON(2)) {
+            if (IS_LAYER_ON(_NV)) {
                 const uint8_t saved_mods = get_mods();
                 caps_word_on();
                 set_mods(saved_mods);
@@ -360,7 +366,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         case KC_DOWN ... KC_UP:
-            if (nav.type != NAV_ASDW) {
+            if (nav.type != NAV_WASD) {
                 return true;
             }
         case KC_RGHT ... KC_LEFT:
@@ -387,7 +393,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                                 nav.keycode = KC_TAB;
                         }
                         break;
-                    case NAV_ASDW:
+                    case NAV_WASD:
                         switch (keycode) {
                             case KC_RGHT:
                                 nav.keycode = is_swap_hands_on() ? KC_A : KC_D;
@@ -403,6 +409,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                         }
                         break;
                     default:
+                        if (is_swap_hands_on()) {
+                            nav.keycode = keycode == KC_LEFT ? KC_RGHT : KC_LEFT;
+                            break;
+                        }
                         return true;
                 }
                 register_code(nav.keycode);
@@ -411,24 +421,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false;
             }
             break;
-        case LT(4, KC_SPC):
+        case LT(_SY, KC_SPC):
             if (!record->tap.count) {
-                layer4_is_held = record->event.pressed;
+                is_layer_SY_held = record->event.pressed;
             }
-        case LT(3, KC_BSPC):
+        case LT(_FN, KC_BSPC):
             if (is_alternative_swap_hands && record->tap.count) {
                 if (record->event.pressed) {
-                    tap_code(keycode == LT(4, KC_SPC) ? KC_H : KC_F);
+                    tap_code(keycode == LT(_SY, KC_SPC) ? KC_H : KC_F);
                 }
                 return false;
             }
             break;
-        case LT(1, KC_NO):
+        case LT(_GM, KC_NO):
             if (record->tap.count) {
-                nav.type = record->tap.count > 1 ? (get_highest_layer(layer_state) == 1 ? NAV_ASDW : NAV_Tab) : 0;
+                nav.type = record->tap.count > 1 ? (get_highest_layer(layer_state) == 1 ? NAV_WASD : NAV_Tab) : 0;
                 return false;
             }
-        case LT(2, KC_H):
+        case LT(_NV, KC_H):
             layer_clear();
             if (!record->event.pressed && !record->tap.count) {
                 unregister_mods(MOD_HYPR);
@@ -452,7 +462,6 @@ enum combos {
     CMB_SH_OS_TOGG2,
     CMB_LNG1,
     CMB_LNG2,
-    CMB_PSCR,
     CMB_OS_CTL,
     CMB_OS_SFT,
     CMB_OS_ALT,
@@ -469,7 +478,6 @@ const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END}
 const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_COMMA, KC_MINS, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(0, KC_C), RCTL_T(KC_Y), COMBO_END};
-const uint16_t PROGMEM cmb_pscr[]        = {LAG_T(KC_L), LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {LAG_T(KC_L), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_alt[]      = {LAG_T(KC_L), LSG_T(KC_D), COMBO_END};
@@ -487,7 +495,6 @@ combo_t key_combos[] = {
     [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(0, 1)),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(0, KC_LNG1)),
     [CMB_LNG2]        = COMBO(cmb_lng2, LT(0, KC_LNG2)),
-    [CMB_PSCR]        = COMBO(cmb_pscr, KC_PSCR),
     [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
     [CMB_OS_SFT]      = COMBO(cmb_os_sft, OSM(MOD_LSFT)),
     [CMB_OS_ALT]      = COMBO(cmb_os_alt, OSM(MOD_LALT)),
@@ -501,7 +508,7 @@ combo_t key_combos[] = {
 bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode, keyrecord_t *record) {
     switch (combo_index) {
         case CMB_MS_BTN1 ... CMB_MS_BTN3:
-            if (IS_LAYER_ON(2)) {
+            if (IS_LAYER_ON(_NV)) {
                 return false;
             }
     }
@@ -509,7 +516,7 @@ bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode
 }
 
 uint8_t combo_ref_from_layer(uint8_t layer) {
-    return 0;
+    return _BS;
 }
 
 bool caps_word_press_user(uint16_t keycode) {
@@ -518,16 +525,15 @@ bool caps_word_press_user(uint16_t keycode) {
             add_weak_mods(MOD_LSFT);
             return true;
         case KC_QUOT:
-            if (IS_LAYER_ON(2)) {
+            if (IS_LAYER_ON(_NV)) {
                 return false;
             }
         case KC_1 ... KC_0:
         case KC_SCLN:
-            if (IS_LAYER_ON(2)) {
+            if (IS_LAYER_ON(_NV)) {
                 add_weak_mods(MOD_LSFT);
             }
         case KC_EQL:
-        case KC_DEL:
         case KC_BSPC:
         case KC_SLSH:
         case KC_MINS:
@@ -537,11 +543,9 @@ bool caps_word_press_user(uint16_t keycode) {
     return false;
 }
 
-#define VOL_TENSION_THRESHOLD 5
-
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     if (is_volkey_held) {
-        const uint16_t keycode = mouse_report.x > VOL_TENSION_THRESHOLD ? KC_VOLU : mouse_report.x < -VOL_TENSION_THRESHOLD ? KC_VOLD : 0;
+        const uint16_t keycode = mouse_report.x > 1 ? KC_VOLU : mouse_report.x < -1 ? KC_VOLD : 0;
         register_code(keycode);
         unregister_code(keycode);
         mouse_report = (report_mouse_t){};
@@ -565,41 +569,41 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for VIA
-  [0] = LAYOUT_universal(
-    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q),                                 RCSG_T(KC_Q),RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RSAG_T(KC_X)   ,
-    LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G) ,                                 LT(0,KC_C)  ,RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V),                                 S(KC_MINS)  ,KC_COMM       ,KC_MINS        ,KC_DOT        ,KC_SCLN        ,
-    LT(1,KC_NO)   ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(2,KC_H)  ,LT(3,KC_F),LT(3,KC_BSPC),LT(4,KC_SPC),KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(1,KC_NO))   ,
+  [_BS] = LAYOUT_universal(
+    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)  ,RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RSAG_T(KC_X)   ,
+    LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(0,KC_C)    ,RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
+    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)    ,KC_COMM       ,KC_MINS        ,KC_DOT        ,KC_SCLN        ,
+    LT(_GM,KC_NO) ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_F),LT(_FN,KC_BSPC),LT(_SY,KC_SPC),KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
-  [1] = LAYOUT_universal(
-    KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q        ,                                 KC_Q        ,KC_Z          ,KC_UP          ,KC_X          ,KC_P           ,
-    KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G        ,                                 KC_G        ,KC_LEFT       ,KC_DOWN        ,KC_RGHT       ,KC_E           ,
-    KC_B          ,KC_R         ,KC_M         ,KC_C         ,KC_V        ,                                 KC_V        ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
-    _______       ,_______      ,_______      ,_______      ,LT(2,KC_SPC),_______   ,LT(3,KC_F)   ,KC_SPC      ,_______       ,_______        ,_______       ,_______)       ,
+  [_GM] = LAYOUT_universal(
+    KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q          ,                                     KC_Q          ,KC_Z          ,KC_UP          ,KC_X          ,KC_P           ,
+    KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G          ,                                     KC_G          ,KC_LEFT       ,KC_DOWN        ,KC_RGHT       ,KC_E           ,
+    KC_B          ,KC_R         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_V          ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
+    _______       ,_______      ,_______      ,_______      ,LT(_NV,KC_SPC),_______     ,LT(_FN,KC_F)   ,KC_SPC        ,_______       ,_______        ,_______       ,_______)       ,
 
-  [2] = LAYOUT_universal(
-    KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL      ,                                 KC_DEL      ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
-    KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END      ,                                 LT(0,KC_3)  ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
-    LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5) ,                                 KC_BSLS     ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,S(KC_2)        ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,LT(3,KC_BSPC),LT(4,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
+  [_NV] = LAYOUT_universal(
+    KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL        ,                                     KC_DEL        ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
+    KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END        ,                                     LT(0,KC_3)    ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
+    LT(0,KC_F1)   ,LT(0,KC_F2)  ,LT(0,KC_F3)  ,LT(0,KC_F4)  ,LT(0,KC_F5)   ,                                     KC_BSLS       ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,S(KC_2)        ,
+    _______       ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SY,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
 
-  [3] = LAYOUT_universal(
-    KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD     ,                                 KC_WFWD     ,KC_F16        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
-    LGUI_T(KC_F10),LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11      ,                                 KC_F21      ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
-    KC_F12        ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)  ,                                 KC_WHOM     ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,_______      ,_______     ,_______       ,_______        ,_______       ,_______)       ,
+  [_FN] = LAYOUT_universal(
+    KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD       ,KC_F16        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
+    LGUI_T(KC_F10),LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11        ,                                     KC_F21        ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
+    KC_F12        ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)    ,                                     KC_WHOM       ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
+    _______       ,_______      ,_______      ,_______      ,_______       ,_______     ,_______        ,_______       ,_______       ,_______        ,_______       ,_______)       ,
 
-  [4] = LAYOUT_universal(
-    KC_BSPC       ,KC_1         ,KC_2         ,KC_3         ,KC_DEL      ,                                 KC_DEL      ,S(KC_COMM)    ,KC_EQL         ,S(KC_DOT)     ,KC_BSPC        ,
-    KC_0          ,KC_4         ,KC_5         ,KC_6         ,S(KC_4)     ,                                 S(KC_7)     ,S(KC_EQL)     ,KC_SLSH        ,S(KC_8)       ,S(KC_5)        ,
-    S(KC_2)       ,KC_7         ,KC_8         ,KC_9         ,KC_DOT      ,                                 S(KC_BSLS)  ,S(KC_1)       ,S(KC_SLSH)     ,S(KC_GRV)     ,S(KC_6)        ,
-    _______       ,_______      ,_______      ,_______      ,_______     ,_______   ,_______      ,_______     ,_______       ,_______        ,_______       ,_______)       ,
+  [_SY] = LAYOUT_universal(
+    KC_BSPC       ,KC_1         ,KC_2         ,KC_3         ,KC_DEL        ,                                     KC_DEL        ,S(KC_COMM)    ,KC_EQL         ,S(KC_DOT)     ,KC_BSPC        ,
+    KC_0          ,KC_4         ,KC_5         ,KC_6         ,S(KC_4)       ,                                     S(KC_7)       ,S(KC_EQL)     ,KC_SLSH        ,S(KC_8)       ,S(KC_5)        ,
+    S(KC_2)       ,KC_7         ,KC_8         ,KC_9         ,KC_DOT        ,                                     S(KC_BSLS)    ,S(KC_1)       ,S(KC_SLSH)     ,S(KC_GRV)     ,S(KC_6)        ,
+    _______       ,_______      ,_______      ,_______      ,_______       ,_______     ,_______        ,_______       ,_______       ,_______        ,_______       ,_______)       ,
 };
 // clang-format on
 
 layer_state_t layer_state_set_user(layer_state_t state) {
-    // Auto enable scroll mode when the highest layer is 4
-    keyball_set_scroll_mode(get_highest_layer(state) == 4);
+    // Auto enable scroll mode when the highest layer is _SY
+    keyball_set_scroll_mode(get_highest_layer(state) == _SY);
     return state;
 }
 
