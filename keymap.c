@@ -588,7 +588,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______       ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SY,KC_SPC),_______       ,_______        ,_______       ,_______)       ,
 
   [_FN] = LAYOUT_universal(
-    KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD       ,KC_F16        ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
+    KC_WBAK       ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD       ,KC_PSCR       ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
     LGUI_T(KC_F10),LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11        ,                                     KC_F21        ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
     KC_F12        ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)    ,                                     KC_WHOM       ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
     _______       ,_______      ,_______      ,_______      ,_______       ,_______     ,_______        ,_______       ,_______       ,_______        ,_______       ,_______)       ,
