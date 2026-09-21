@@ -435,7 +435,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case LT(_GM, KC_NO):
             if (record->tap.count) {
-                nav.type = record->tap.count > 1 ? (get_highest_layer(layer_state) == 1 ? NAV_WASD : NAV_Tab) : 0;
+                nav.type = record->tap.count > 1 ? (get_highest_layer(layer_state) == _GM ? NAV_WASD : NAV_Tab) : 0;
                 return false;
             }
         case LT(_NV, KC_H):
