@@ -489,7 +489,7 @@ enum combos {
 
 const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_vol1[]        = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
-const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, RCAG_T(KC_X), COMBO_END};
+const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, RCAG_T(KC_J), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_COMMA, KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
@@ -586,9 +586,9 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for VIA
   [_BS] = LAYOUT_universal(
-    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_Y)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_J)   ,
+    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_Y)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_X)   ,
     LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_C)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,KC_COMM       ,KC_DOT         ,RCAG_T(KC_X)  ,RSAG_T(KC_SCLN),
+    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,KC_COMM       ,KC_DOT         ,RCAG_T(KC_J)  ,RSAG_T(KC_SCLN),
     LT(_GM,KC_NO) ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_F),LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
