@@ -51,10 +51,10 @@ uint8_t unpack_mods(uint16_t keycode) {
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
-        if (IS_EXCEPTIONAL_INPUT(keycode, record)) {
+        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record)) {
             is_quick_succession_input = false;
             inter_keycode             = keycode;
-        } else if (tap_part > KC_Z || timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
+        } else if (timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
             is_quick_succession_input = IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI));
             inter_keycode             = keycode;
         }
@@ -200,6 +200,7 @@ void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
         tap_code(tap_part);
         within_word(poped_key);
         if (poped_key == keycode) {
+            // Keep keys after `keycode` pending for the next input event.
             return;
         }
     }
@@ -207,7 +208,7 @@ void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
 
 #define IS_QK_COMBO(r) ((r)->event.key.row == 0 && (r)->event.key.col == 0)
 
-void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
+void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
     if (IS_UNILATERAL_INPUT(record, 0x88) || IS_QK_COMBO(record)) {
         set_mts_mods(&lmts);
         set_mts_mods(&rmts);
@@ -225,6 +226,7 @@ void procoss_pended_keys(uint16_t keycode, keyrecord_t *record) {
 #define LCSG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LGUI, (k)))
 #define LSAG_T(k) (MT(MOD_LSFT | MOD_LALT | MOD_LGUI, (k)))
 #define RCG_T(k) (MT(MOD_RCTL | MOD_RGUI, (k)))
+#define RCSA_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RALT, (k)))
 #define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
 #define RSAG_T(k) (MT(MOD_RSFT | MOD_RALT | MOD_RGUI, (k)))
 
@@ -267,7 +269,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             if (record->event.pressed && !record->tap.count) {
                 mt_queue_t *mts = IS_UNILATERAL_INPUT(record, 0x0F) ? &lmts : &rmts;
-                enqueue(mts, keycode);
+                enqueue(mts, keycode); // discard when it overflows.
                 return false;
             }
             break;
@@ -304,7 +306,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
     }
 
-    procoss_pended_keys(keycode, record);
+    process_pended_keys(keycode, record);
 
     if (is_alternative_swap_hands) {
         if (IS_UNILATERAL_INPUT(record, 0x8F)) {
@@ -324,11 +326,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             nav.type = NAV_UNDO_REDO;
             return false;
         case LT(_BS, KC_F2)... LT(_BS, KC_F5): {
-            static const uint8_t mods[4]    = {MOD_LALT, MOD_LSFT | MOD_LCTL, MOD_LCTL, MOD_LCTL};
-            static const uint8_t codes[4]   = {KC_APP, KC_F15, KC_F16, KC_C};
-            const uint8_t        index      = keycode - LT(_BS, KC_F2);
-            const uint8_t        saved_mods = get_mods();
-            keycode                         = index == 3 ? KC_V : KC_TAB;
+            static const uint8_t mods[4] = {
+                MOD_LALT,
+                MOD_LSFT | MOD_LCTL,
+                MOD_LCTL,
+                MOD_LCTL,
+            };
+            static const uint8_t codes[4] = {
+                KC_APP,
+                KC_F15,
+                KC_F16,
+                KC_C,
+            };
+            const uint8_t index      = keycode - LT(_BS, KC_F2);
+            const uint8_t saved_mods = get_mods();
+            keycode                  = index == 3 ? KC_V : KC_TAB;
             if (record->event.pressed) {
                 clear_mods();
                 if (record->tap.count) {
@@ -338,6 +350,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     register_mods(index == 3 ? MOD_LCTL : 0);
                     tap_code(codes[index]);
                 }
+                // Keep Alt held for F2 so repeated F2 acts as Alt-Tab.
                 if (index) {
                     set_mods(saved_mods);
                 }
@@ -476,9 +489,9 @@ enum combos {
 
 const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_vol1[]        = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
-const uint16_t PROGMEM cmb_vol2[]        = {KC_SCLN, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, RCAG_T(KC_X), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
-const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_COMMA, KC_SCLN, COMBO_END};
+const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_COMMA, KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_C), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
@@ -573,9 +586,9 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for VIA
   [_BS] = LAYOUT_universal(
-    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_Y)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCAG_T(KC_J)   ,
+    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_Y)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_J)   ,
     LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_C)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,KC_COMM       ,KC_SCLN        ,KC_DOT        ,RSAG_T(KC_X)   ,
+    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,KC_COMM       ,KC_DOT         ,RCAG_T(KC_X)  ,RSAG_T(KC_SCLN),
     LT(_GM,KC_NO) ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_F),LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
@@ -599,7 +612,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_SY] = LAYOUT_universal(
     KC_BSPC       ,KC_1         ,KC_2         ,KC_3         ,KC_DEL        ,                                     KC_DEL         ,S(KC_COMM)    ,KC_EQL         ,S(KC_DOT)     ,KC_BSPC        ,
     KC_0          ,KC_4         ,KC_5         ,KC_6         ,S(KC_4)       ,                                     S(KC_7)        ,S(KC_EQL)     ,KC_SLSH        ,S(KC_8)       ,S(KC_5)        ,
-    S(KC_2)       ,KC_7         ,KC_8         ,KC_9         ,KC_DOT        ,                                     S(KC_BSLS)     ,S(KC_1)       ,S(KC_SLSH)     ,S(KC_GRV)     ,S(KC_6)        ,
+    KC_COMM       ,KC_7         ,KC_8         ,KC_9         ,KC_DOT        ,                                     S(KC_BSLS)     ,S(KC_1)       ,S(KC_SLSH)     ,S(KC_GRV)     ,S(KC_6)        ,
     _______       ,_______      ,_______      ,_______      ,_______       ,_______     ,_______        ,_______        ,_______       ,_______        ,_______       ,_______)       ,
 };
 // clang-format on
