@@ -225,6 +225,7 @@ void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
 #define LCSA_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LALT, (k)))
 #define LCSG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LGUI, (k)))
 #define LSAG_T(k) (MT(MOD_LSFT | MOD_LALT | MOD_LGUI, (k)))
+#define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
 #define RCG_T(k) (MT(MOD_RCTL | MOD_RGUI, (k)))
 #define RCSA_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RALT, (k)))
 #define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
@@ -471,11 +472,11 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 enum combos {
-    CMB_INT4,
-    CMB_VOL1,
-    CMB_VOL2,
     CMB_SH_OS_TOGG1,
     CMB_SH_OS_TOGG2,
+    CMB_VOL1,
+    CMB_VOL2,
+    CMB_INT4,
     CMB_LNG1,
     CMB_LNG2,
     CMB_OS_CTL,
@@ -487,13 +488,13 @@ enum combos {
     CMB_MS_BTN3,
 };
 
-const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
-const uint16_t PROGMEM cmb_vol1[]        = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
-const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, RCAG_T(KC_J), COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
-const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_COMMA, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_sh_os_togg2[] = {RCA_T(KC_C), KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_vol1[]        = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
+const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, KC_COMM, COMBO_END};
+const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
-const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_C), COMBO_END};
+const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {LAG_T(KC_L), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_alt[]      = {LAG_T(KC_L), LSG_T(KC_D), COMBO_END};
@@ -504,11 +505,11 @@ const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_EN
 
 // clang-format off
 combo_t key_combos[] = {
-    [CMB_INT4]        = COMBO(cmb_int4, KC_INT4),
-    [CMB_VOL1]        = COMBO(cmb_vol1, LT(_BS, KC_NO)),
-    [CMB_VOL2]        = COMBO(cmb_vol2, LT(_BS, KC_NO)),
     [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(_BS, 1)),
     [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(_BS, 1)),
+    [CMB_VOL1]        = COMBO(cmb_vol1, LT(_BS, KC_NO)),
+    [CMB_VOL2]        = COMBO(cmb_vol2, LT(_BS, KC_NO)),
+    [CMB_INT4]        = COMBO(cmb_int4, KC_INT4),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(_BS, KC_LNG1)),
     [CMB_LNG2]        = COMBO(cmb_lng2, LT(_BS, KC_LNG2)),
     [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
@@ -586,9 +587,9 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for VIA
   [_BS] = LAYOUT_universal(
-    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_Y)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_X)   ,
-    LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_C)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,KC_COMM       ,KC_DOT         ,RCAG_T(KC_J)  ,RSAG_T(KC_SCLN),
+    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_X)   ,
+    LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
+    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,RCA_T(KC_C)   ,KC_DOT         ,KC_COMM       ,RSAG_T(KC_SCLN),
     LT(_GM,KC_NO) ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_F),LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
