@@ -445,7 +445,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(_FN, KC_BSPC):
             if (is_alternative_swap_hands && record->tap.count) {
                 if (record->event.pressed) {
-                    tap_code(keycode == LT(_SY, KC_SPC) ? KC_H : KC_F);
+                    tap_code(keycode == LT(_SY, KC_SPC) ? KC_H : KC_P);
                 }
                 return false;
             }
@@ -498,7 +498,7 @@ const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMB
 const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {LAG_T(KC_L), LCG_T(KC_W), COMBO_END};
 const uint16_t PROGMEM cmb_os_alt[]      = {LAG_T(KC_L), LSG_T(KC_D), COMBO_END};
-const uint16_t PROGMEM cmb_os_gui[]      = {KC_P, LAG_T(KC_L), COMBO_END};
+const uint16_t PROGMEM cmb_os_gui[]      = {KC_F, LAG_T(KC_L), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]     = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
@@ -587,16 +587,16 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for VIA
   [_BS] = LAYOUT_universal(
-    KC_P          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_X)   ,
+    KC_F          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_X)   ,
     LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
     LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,RCA_T(KC_C)   ,KC_DOT         ,KC_COMM       ,RSAG_T(KC_SCLN),
-    LT(_GM,KC_NO) ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_F),LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
+    LT(_GM,KC_NO) ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_P),LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
-    KC_P          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q          ,                                     KC_Q           ,KC_Z          ,KC_UP          ,KC_X          ,KC_P           ,
+    KC_F          ,KC_X         ,KC_K         ,KC_Z         ,KC_Q          ,                                     KC_Q           ,KC_Z          ,KC_UP          ,KC_X          ,KC_F           ,
     KC_E          ,KC_H         ,KC_J         ,KC_L         ,KC_G          ,                                     KC_G           ,KC_LEFT       ,KC_DOWN        ,KC_RGHT       ,KC_E           ,
     KC_B          ,KC_R         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_V           ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
-    _______       ,_______      ,_______      ,_______      ,LT(_NV,KC_SPC),_______     ,LT(_FN,KC_F)   ,KC_SPC         ,_______       ,_______        ,_______       ,_______)       ,
+    _______       ,_______      ,_______      ,_______      ,LT(_NV,KC_SPC),_______     ,LT(_FN,KC_P)   ,KC_SPC         ,_______       ,_______        ,_______       ,_______)       ,
 
   [_NV] = LAYOUT_universal(
     KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL        ,                                     KC_DEL         ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
