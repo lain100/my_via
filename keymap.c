@@ -49,14 +49,27 @@ uint8_t unpack_mods(uint16_t keycode) {
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    static bool is_after_ag_input;
+    static bool is_left_hand;
+
     const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
+        if (is_after_ag_input) {
+            if ((is_left_hand && IS_UNILATERAL_INPUT(record, 0x70)) || (!is_left_hand && IS_UNILATERAL_INPUT(record, 0x07))) {
+                is_quick_succession_input = true;
+            }
+            is_after_ag_input = false;
+        }
         if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record)) {
             is_quick_succession_input = false;
             inter_keycode             = keycode;
         } else if (timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
-            is_quick_succession_input = IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI));
+            is_quick_succession_input = false;
             inter_keycode             = keycode;
+            if (IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI))) {
+                is_after_ag_input = true;
+                is_left_hand      = IS_UNILATERAL_INPUT(record, 0x07);
+            }
         }
         inter_record = *record;
     } else {
@@ -100,7 +113,6 @@ enum navkey_types {
     NAV_NONE,
     NAV_UNDO_REDO,
     NAV_TAB,
-    NAV_WASD,
 };
 
 typedef struct {
@@ -212,7 +224,6 @@ void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
     if (IS_UNILATERAL_INPUT(record, 0x88) || IS_QK_COMBO(record)) {
         set_mts_mods(&lmts);
         set_mts_mods(&rmts);
-        is_quick_succession_input = false;
         return;
     }
     const bool is_left_side = IS_UNILATERAL_INPUT(record, 0x07);
@@ -382,10 +393,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(KC_SLSH);
             }
             return false;
-        case KC_DOWN ... KC_UP:
-            if (nav.type != NAV_WASD) {
-                return true;
-            }
         case KC_RGHT ... KC_LEFT:
             // Only one synthesized navigation key may be held at a time.
             if (nav.registered) {
@@ -409,21 +416,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                             register_mods(MOD_LSFT);
                         }
                         nav.keycode = KC_TAB;
-                        break;
-                    case NAV_WASD:
-                        switch (keycode) {
-                            case KC_RGHT:
-                                nav.keycode = is_swap_hands_on() ? KC_A : KC_D;
-                                break;
-                            case KC_LEFT:
-                                nav.keycode = is_swap_hands_on() ? KC_D : KC_A;
-                                break;
-                            case KC_DOWN:
-                                nav.keycode = KC_S;
-                                break;
-                            default:
-                                nav.keycode = KC_W;
-                        }
                         break;
                     default:
                         if (is_swap_hands_on()) {
@@ -452,7 +444,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case LT(_GM, KC_NO):
             if (record->tap.count) {
-                nav.type = record->tap.count > 1 ? (get_highest_layer(layer_state) == _GM ? NAV_WASD : NAV_TAB) : NAV_NONE;
+                nav.type = record->tap.count > 1 ? NAV_TAB : NAV_NONE;
                 return false;
             }
         case LT(_NV, KC_H):
