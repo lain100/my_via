@@ -85,7 +85,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
             record->tap.count++;
         }
     }
-    if (keycode == LT(_SY, keycode)) {
+    if (keycode == LT(_SY, keycode) && IS_LAYER_OFF(_SY)) {
         keyball_set_scroll_mode(record->event.pressed);
     }
     return true;
@@ -231,17 +231,6 @@ void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
     send_mts_taps(is_left_side ? &lmts : &rmts, keycode);
 }
 
-#define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
-#define LCG_T(k) (MT(MOD_LCTL | MOD_LGUI, (k)))
-#define LCSA_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LALT, (k)))
-#define LCSG_T(k) (MT(MOD_LCTL | MOD_LSFT | MOD_LGUI, (k)))
-#define LSAG_T(k) (MT(MOD_LSFT | MOD_LALT | MOD_LGUI, (k)))
-#define RCA_T(k) (MT(MOD_RCTL | MOD_RALT, (k)))
-#define RCG_T(k) (MT(MOD_RCTL | MOD_RGUI, (k)))
-#define RCSA_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RALT, (k)))
-#define RCSG_T(k) (MT(MOD_RCTL | MOD_RSFT | MOD_RGUI, (k)))
-#define RSAG_T(k) (MT(MOD_RSFT | MOD_RALT | MOD_RGUI, (k)))
-
 static bool is_volkey_held;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -252,12 +241,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     if (oneshot_ignore_key_release && !record->event.pressed) {
         oneshot_ignore_key_release = false;
-        if (keycode == LT(_SY, keycode)) {
-            is_layer_SY_held = false;
-            if (!record->tap.count) {
-                keyball_set_scroll_mode(true);
-            }
-        }
+        is_layer_SY_held           = false;
         return false;
     }
 
@@ -318,9 +302,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
     }
 
-    process_pended_keys(keycode, record);
-
     if (is_alternative_swap_hands) {
+        if (record->event.pressed && !record->tap.count && IS_UNILATERAL_INPUT(record, 0x77)) {
+            mt_queue_t *mts = IS_UNILATERAL_INPUT(record, 0x0F) ? &lmts : &rmts;
+            enqueue(mts, keycode);
+            return false;
+        }
         if (IS_UNILATERAL_INPUT(record, 0x8F)) {
             swap_hands_on();
             if (get_highest_layer(layer_state)) {
@@ -332,6 +319,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     } else if (!is_fixed_swap_hands) {
         swap_hands_off();
     }
+
+    process_pended_keys(keycode, record);
 
     switch (keycode) {
         case LT(_BS, KC_F1):
@@ -418,10 +407,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                         nav.keycode = KC_TAB;
                         break;
                     default:
-                        if (is_swap_hands_on()) {
-                            nav.keycode = keycode == KC_LEFT ? KC_RGHT : KC_LEFT;
-                            break;
-                        }
                         return true;
                 }
                 register_code(nav.keycode);
@@ -463,6 +448,8 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
+#define LCS_T(k) (MT(MOD_MASK_CS, (k)))
+
 enum combos {
     CMB_SH_OS_TOGG1,
     CMB_SH_OS_TOGG2,
@@ -480,17 +467,17 @@ enum combos {
     CMB_MS_BTN3,
 };
 
-const uint16_t PROGMEM cmb_sh_os_togg1[] = {LSA_T(KC_M), LCA_T(KC_K), COMBO_END};
-const uint16_t PROGMEM cmb_sh_os_togg2[] = {RCA_T(KC_C), KC_DOT, COMBO_END};
-const uint16_t PROGMEM cmb_vol1[]        = {LCAG_T(KC_Z), LSA_T(KC_M), COMBO_END};
+const uint16_t PROGMEM cmb_sh_os_togg1[] = {KC_M, KC_K, COMBO_END};
+const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_C, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_vol1[]        = {KC_Z, KC_M, COMBO_END};
 const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, KC_COMM, COMBO_END};
-const uint16_t PROGMEM cmb_int4[]        = {LCAG_T(KC_Z), LCA_T(KC_K), COMBO_END};
-const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
+const uint16_t PROGMEM cmb_int4[]        = {KC_Z, KC_K, COMBO_END};
+const uint16_t PROGMEM cmb_lng1[]        = {KC_S, LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
-const uint16_t PROGMEM cmb_os_ctl[]      = {LSG_T(KC_D), LCG_T(KC_W), COMBO_END};
-const uint16_t PROGMEM cmb_os_sft[]      = {LAG_T(KC_L), LCG_T(KC_W), COMBO_END};
-const uint16_t PROGMEM cmb_os_alt[]      = {LAG_T(KC_L), LSG_T(KC_D), COMBO_END};
-const uint16_t PROGMEM cmb_os_gui[]      = {KC_F, LAG_T(KC_L), COMBO_END};
+const uint16_t PROGMEM cmb_os_ctl[]      = {KC_D, KC_W, COMBO_END};
+const uint16_t PROGMEM cmb_os_sft[]      = {KC_L, KC_W, COMBO_END};
+const uint16_t PROGMEM cmb_os_alt[]      = {KC_L, KC_D, COMBO_END};
+const uint16_t PROGMEM cmb_os_gui[]      = {KC_F, KC_L, COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]     = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
@@ -579,9 +566,9 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for VIA
   [_BS] = LAYOUT_universal(
-    KC_F          ,LAG_T(KC_L)  ,LSG_T(KC_D)  ,LCG_T(KC_W)  ,LCSG_T(KC_Q)  ,                                     RCSG_T(KC_Q)   ,RCG_T(KC_J)   ,RSG_T(KC_O)    ,RAG_T(KC_U)   ,RCSA_T(KC_X)   ,
+    KC_F          ,KC_L         ,KC_D         ,KC_W         ,KC_Q          ,                                     KC_Q           ,KC_J          ,KC_O           ,KC_U          ,KC_X           ,
     LGUI_T(KC_N)  ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    LSAG_T(KC_B)  ,LCAG_T(KC_Z) ,LSA_T(KC_M)  ,LCA_T(KC_K)  ,LCSA_T(KC_V)  ,                                     S(KC_MINS)     ,RCA_T(KC_C)   ,KC_DOT         ,KC_COMM       ,RSAG_T(KC_SCLN),
+    KC_B          ,KC_Z         ,KC_M         ,KC_K         ,KC_V          ,                                     S(KC_MINS)     ,KC_C          ,KC_DOT         ,KC_COMM       ,KC_SCLN        ,
     LT(_GM,KC_NO) ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_P),LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
@@ -591,7 +578,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______       ,_______      ,_______      ,_______      ,LT(_NV,KC_SPC),_______     ,LT(_FN,KC_P)   ,KC_SPC         ,_______       ,_______        ,_______       ,_______)       ,
 
   [_NV] = LAYOUT_universal(
-    KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL        ,                                     KC_DEL         ,RCG_T(KC_LBRC),S(KC_QUOT)     ,RAG_T(KC_RBRC),KC_BSPC        ,
+    KC_BSPC       ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL        ,                                     KC_DEL         ,KC_LBRC       ,S(KC_QUOT)     ,KC_RBRC       ,KC_BSPC        ,
     KC_HOME       ,KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,KC_END        ,                                     LT(_BS,KC_3)   ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
     LT(_BS,KC_F1) ,LT(_BS,KC_F2),LT(_BS,KC_F3),LT(_BS,KC_F4),LT(_BS,KC_F5) ,                                     KC_BSLS        ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,S(KC_2)        ,
     _______       ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,_______       ,_______        ,_______       ,_______)       ,
