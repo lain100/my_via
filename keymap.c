@@ -448,7 +448,7 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-#define LCS_T(k) (MT(MOD_MASK_CS, (k)))
+#define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
 
 enum combos {
     CMB_SH_OS_TOGG1,
@@ -472,7 +472,7 @@ const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_C, KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_vol1[]        = {KC_Z, KC_M, COMBO_END};
 const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, KC_COMM, COMBO_END};
 const uint16_t PROGMEM cmb_int4[]        = {KC_Z, KC_K, COMBO_END};
-const uint16_t PROGMEM cmb_lng1[]        = {KC_S, LCS_T(KC_G), COMBO_END};
+const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {KC_D, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {KC_L, KC_W, COMBO_END};
