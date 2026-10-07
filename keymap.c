@@ -219,7 +219,7 @@ void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
 }
 
 void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
-    if ((keycode & 0xFF) > KC_Z || IS_UNILATERAL_INPUT(record, 0x88)) {
+    if (IS_UNILATERAL_INPUT(record, 0x88) || (keycode >= KC_RGHT && keycode <= KC_UP)) {
         set_mts_mods(&lmts);
         set_mts_mods(&rmts);
         return;
@@ -301,7 +301,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     if (is_alternative_swap_hands) {
-        if (record->event.pressed && !record->tap.count && IS_UNILATERAL_INPUT(record, 0x77)) {
+        if (record->event.pressed && QK_MOD_TAP_GET_TAP_KEYCODE(keycode) <= KC_Z && IS_UNILATERAL_INPUT(record, 0x77)) {
             mt_queue_t *mts = IS_UNILATERAL_INPUT(record, 0x0F) ? &lmts : &rmts;
             enqueue(mts, keycode);
             return false;
@@ -374,8 +374,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
         case LT(_BS, KC_INT4):
             if (record->event.pressed) {
-                add_weak_mods(MOD_LGUI);
+                register_mods(MOD_LGUI);
                 register_code(KC_SLSH);
+                unregister_mods(MOD_LGUI);
             } else {
                 unregister_code(KC_SLSH);
             }
