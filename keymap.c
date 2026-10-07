@@ -218,10 +218,8 @@ void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
     }
 }
 
-#define IS_QK_COMBO(r) ((r)->event.key.row == 0 && (r)->event.key.col == 0)
-
 void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
-    if (IS_UNILATERAL_INPUT(record, 0x88) || IS_QK_COMBO(record)) {
+    if (IS_UNILATERAL_INPUT(record, 0x88)) {
         set_mts_mods(&lmts);
         set_mts_mods(&rmts);
         return;
@@ -374,7 +372,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
             }
             return false;
-        case KC_INT4:
+        case LT(_BS, KC_INT4):
             if (record->event.pressed) {
                 add_weak_mods(MOD_LGUI);
                 register_code(KC_SLSH);
@@ -488,7 +486,7 @@ combo_t key_combos[] = {
     [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(_BS, 1)),
     [CMB_VOL1]        = COMBO(cmb_vol1, LT(_BS, KC_NO)),
     [CMB_VOL2]        = COMBO(cmb_vol2, LT(_BS, KC_NO)),
-    [CMB_INT4]        = COMBO(cmb_int4, KC_INT4),
+    [CMB_INT4]        = COMBO(cmb_int4, LT(_BS, KC_INT4)),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(_BS, KC_LNG1)),
     [CMB_LNG2]        = COMBO(cmb_lng2, LT(_BS, KC_LNG2)),
     [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
