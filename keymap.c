@@ -476,7 +476,7 @@ const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMB
 const uint16_t PROGMEM cmb_os_ctl[]      = {KC_D, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_sft[]      = {KC_L, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_alt[]      = {KC_L, KC_D, COMBO_END};
-const uint16_t PROGMEM cmb_os_gui[]      = {KC_F, KC_L, COMBO_END};
+const uint16_t PROGMEM cmb_os_gui[]      = {KC_L, KC_D, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]     = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
@@ -531,7 +531,6 @@ bool caps_word_press_user(uint16_t keycode) {
         case KC_EQL:
         case KC_BSPC:
         case KC_SLSH:
-        case KC_MINS:
         case S(KC_MINS):
             return true;
     }
