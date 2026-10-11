@@ -51,8 +51,7 @@ uint8_t unpack_mods(uint16_t keycode) {
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool    is_after_ag_input;
     static bool    is_left_side_held;
-    bool           is_expired = timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM;
-    const uint16_t tap_part   = 0xFF & keycode;
+    const uint16_t tap_part = 0xFF & keycode;
 
     if (record->event.pressed) {
         if (is_after_ag_input) {
@@ -61,6 +60,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
                 is_quick_succession_input = true;
             }
         }
+        bool is_expired = timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM;
         if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record) || is_expired) {
             is_quick_succession_input = false;
             inter_keycode             = keycode;
