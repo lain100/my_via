@@ -49,26 +49,24 @@ uint8_t unpack_mods(uint16_t keycode) {
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    static bool is_after_ag_input;
-    static bool is_left_hand;
+    static bool    is_after_ag_input;
+    static bool    is_left_side_held;
+    bool           is_expired = timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM;
+    const uint16_t tap_part   = 0xFF & keycode;
 
-    const uint16_t tap_part = 0xFF & keycode;
     if (record->event.pressed) {
         if (is_after_ag_input) {
-            if ((is_left_hand && IS_UNILATERAL_INPUT(record, 0x70)) || (!is_left_hand && IS_UNILATERAL_INPUT(record, 0x07))) {
+            is_after_ag_input = false;
+            if ((is_left_side_held && IS_UNILATERAL_INPUT(record, 0x70)) || (!is_left_side_held && IS_UNILATERAL_INPUT(record, 0x07))) {
                 is_quick_succession_input = true;
             }
-            is_after_ag_input = false;
         }
-        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record)) {
+        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record) || is_expired) {
             is_quick_succession_input = false;
             inter_keycode             = keycode;
-        } else if (timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM) {
-            is_quick_succession_input = false;
-            inter_keycode             = keycode;
-            if (IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI))) {
+            if (is_expired && IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI))) {
                 is_after_ag_input = true;
-                is_left_hand      = IS_UNILATERAL_INPUT(record, 0x07);
+                is_left_side_held = IS_UNILATERAL_INPUT(record, 0x07);
             }
         }
         inter_record = *record;
@@ -268,17 +266,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         case LT(_BS, KC_NO):
-            if (record->tap.count) {
-                if (!record->event.pressed) {
-                    oneshot_ignore_key_release = true;
-                }
-            } else {
-                is_volkey_held = record->event.pressed;
+            if (record->event.pressed) {
+                is_fixed_swap_hands       = false;
+                is_alternative_swap_hands = record->tap.count > 1;
+                swap_hands_off();
             }
             return false;
         case LT(_BS, 1):
             if (record->event.pressed) {
-                if (record->tap.count == 1) {
+                if (record->tap.count <= 1) {
                     if (is_fixed_swap_hands) {
                         is_fixed_swap_hands = false;
                         swap_hands_off();
@@ -287,15 +283,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     } else {
                         swap_hands_on();
                     }
-                } else if (record->tap.count) {
+                } else {
                     is_fixed_swap_hands       = true;
                     is_alternative_swap_hands = false;
                     swap_hands_on();
-                } else {
-                    is_fixed_swap_hands = false;
-                    is_alternative_swap_hands ^= true;
-                    swap_hands_off();
                 }
+            }
+            return false;
+        case LT(_BS, 2):
+            if (!record->event.pressed) {
+                oneshot_ignore_key_release = true;
             }
             return false;
     }
@@ -322,38 +319,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode) {
         case LT(_BS, KC_F1):
-            nav.type = NAV_UNDO_REDO;
+            if (record->event.pressed) {
+                if (record->tap.count <= 1) {
+                    nav.type = NAV_UNDO_REDO;
+                } else {
+                    tap_code(KC_APP);
+                }
+            }
             return false;
         case LT(_BS, KC_F2)... LT(_BS, KC_F5): {
-            static const uint8_t mods[4] = {
-                MOD_LALT,
-                MOD_LSFT | MOD_LCTL,
-                MOD_LCTL,
-                MOD_LCTL,
+            static const uint8_t mods[2][4] = {
+                {MOD_LALT, MOD_LSFT | MOD_LCTL, MOD_LCTL, MOD_LCTL},
+                {MOD_LGUI, 0, 0, MOD_LCTL},
             };
-            static const uint8_t codes[4] = {
-                KC_APP,
-                KC_F15,
-                KC_F16,
-                KC_C,
-            };
-            const uint8_t index      = keycode - LT(_BS, KC_F2);
-            const uint8_t saved_mods = get_mods();
-            keycode                  = index == 3 ? KC_V : KC_TAB;
+            static const uint8_t codes[4]   = {KC_SLSH, KC_F15, KC_F16, KC_C};
+            const uint8_t        index      = keycode - LT(_BS, KC_F2);
+            const uint8_t        saved_mods = get_mods();
+            uint8_t              mod        = mods[!record->tap.count][index];
+            keycode                         = record->tap.count ? (index == 3 ? KC_V : KC_TAB) : codes[index];
             if (record->event.pressed) {
                 clear_mods();
-                if (record->tap.count) {
-                    register_mods(mods[index]);
-                    register_code(keycode);
-                } else {
-                    register_mods(index == 3 ? MOD_LCTL : 0);
-                    tap_code(codes[index]);
-                }
-                // Keep Alt held for F2 so repeated F2 acts as Alt-Tab.
-                if (index) {
+                register_mods(mod);
+                register_code(keycode);
+                if (mod != MOD_LALT) {
                     set_mods(saved_mods);
                 }
-            } else if (record->tap.count) {
+            } else {
                 unregister_code(keycode);
             }
             return false;
@@ -370,15 +361,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 } else {
                     caps_word_on();
                 }
-            }
-            return false;
-        case LT(_BS, KC_INT4):
-            if (record->event.pressed) {
-                register_mods(MOD_LGUI);
-                register_code(KC_SLSH);
-                unregister_mods(MOD_LGUI);
-            } else {
-                unregister_code(KC_SLSH);
             }
             return false;
         case KC_RGHT ... KC_LEFT:
@@ -430,6 +412,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->tap.count) {
                 nav.type = record->tap.count > 1 ? NAV_TAB : NAV_NONE;
                 return false;
+            } else {
+                is_volkey_held = record->event.pressed;
             }
         case LT(_NV, KC_H):
             layer_clear();
@@ -450,11 +434,11 @@ void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
 #define LCS_T(k) (MT(MOD_LCTL | MOD_LSFT, (k)))
 
 enum combos {
+    CMB_IGNR_KY_RL1,
+    CMB_IGNR_KY_RL2,
     CMB_SH_OS_TOGG1,
     CMB_SH_OS_TOGG2,
-    CMB_VOL1,
-    CMB_VOL2,
-    CMB_INT4,
+    CMB_ALTN_SH,
     CMB_LNG1,
     CMB_LNG2,
     CMB_OS_CTL,
@@ -466,11 +450,11 @@ enum combos {
     CMB_MS_BTN3,
 };
 
+const uint16_t PROGMEM cmb_ignr_ky_rl1[] = {KC_Z, KC_M, COMBO_END};
+const uint16_t PROGMEM cmb_ignr_ky_rl2[] = {KC_DOT, KC_COMM, COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {KC_M, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_C, KC_DOT, COMBO_END};
-const uint16_t PROGMEM cmb_vol1[]        = {KC_Z, KC_M, COMBO_END};
-const uint16_t PROGMEM cmb_vol2[]        = {KC_DOT, KC_COMM, COMBO_END};
-const uint16_t PROGMEM cmb_int4[]        = {KC_Z, KC_K, COMBO_END};
+const uint16_t PROGMEM cmb_altn_sh[]     = {KC_Z, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {KC_D, KC_W, COMBO_END};
@@ -483,11 +467,11 @@ const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_EN
 
 // clang-format off
 combo_t key_combos[] = {
+    [CMB_IGNR_KY_RL1] = COMBO(cmb_ignr_ky_rl1, LT(_BS, 2)),
+    [CMB_IGNR_KY_RL2] = COMBO(cmb_ignr_ky_rl2, LT(_BS, 2)),
     [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(_BS, 1)),
     [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(_BS, 1)),
-    [CMB_VOL1]        = COMBO(cmb_vol1, LT(_BS, KC_NO)),
-    [CMB_VOL2]        = COMBO(cmb_vol2, LT(_BS, KC_NO)),
-    [CMB_INT4]        = COMBO(cmb_int4, LT(_BS, KC_INT4)),
+    [CMB_ALTN_SH]     = COMBO(cmb_altn_sh, LT(_BS, KC_NO)),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(_BS, KC_LNG1)),
     [CMB_LNG2]        = COMBO(cmb_lng2, LT(_BS, KC_LNG2)),
     [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
@@ -531,6 +515,7 @@ bool caps_word_press_user(uint16_t keycode) {
         case KC_EQL:
         case KC_BSPC:
         case KC_SLSH:
+        case KC_MINS:
         case S(KC_MINS):
             return true;
     }
