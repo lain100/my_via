@@ -438,7 +438,8 @@ enum combos {
     CMB_IGNR_KY_RL2,
     CMB_SH_OS_TOGG1,
     CMB_SH_OS_TOGG2,
-    CMB_ALTN_SH,
+    CMB_ALTN_SH1,
+    CMB_ALTN_SH2,
     CMB_LNG1,
     CMB_LNG2,
     CMB_OS_CTL,
@@ -454,7 +455,8 @@ const uint16_t PROGMEM cmb_ignr_ky_rl1[] = {KC_Z, KC_M, COMBO_END};
 const uint16_t PROGMEM cmb_ignr_ky_rl2[] = {KC_DOT, KC_COMM, COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg1[] = {KC_M, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_C, KC_DOT, COMBO_END};
-const uint16_t PROGMEM cmb_altn_sh[]     = {KC_Z, KC_K, COMBO_END};
+const uint16_t PROGMEM cmb_altn_sh1[]    = {KC_Z, KC_K, COMBO_END};
+const uint16_t PROGMEM cmb_altn_sh2[]    = {KC_C, KC_COMM, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {KC_D, KC_W, COMBO_END};
@@ -471,7 +473,8 @@ combo_t key_combos[] = {
     [CMB_IGNR_KY_RL2] = COMBO(cmb_ignr_ky_rl2, LT(_BS, 2)),
     [CMB_SH_OS_TOGG1] = COMBO(cmb_sh_os_togg1, LT(_BS, 1)),
     [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(_BS, 1)),
-    [CMB_ALTN_SH]     = COMBO(cmb_altn_sh, LT(_BS, KC_NO)),
+    [CMB_ALTN_SH1]    = COMBO(cmb_altn_sh1, LT(_BS, KC_NO)),
+    [CMB_ALTN_SH2]    = COMBO(cmb_altn_sh2, LT(_BS, KC_NO)),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(_BS, KC_LNG1)),
     [CMB_LNG2]        = COMBO(cmb_lng2, LT(_BS, KC_LNG2)),
     [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
