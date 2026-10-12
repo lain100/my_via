@@ -299,7 +299,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 
     if (is_alternative_swap_hands) {
-        if (record->event.pressed && QK_MOD_TAP_GET_TAP_KEYCODE(keycode) <= KC_Z && IS_UNILATERAL_INPUT(record, 0x77)) {
+        if (record->event.pressed && get_highest_layer(layer_state) == _BS && IS_UNILATERAL_INPUT(record, 0x77)) {
             mt_queue_t *mts = IS_UNILATERAL_INPUT(record, 0x0F) ? &lmts : &rmts;
             enqueue(mts, keycode);
             return false;
