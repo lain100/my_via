@@ -9,10 +9,10 @@ z-	〜
 z[	『		DisplayAmbiguousResult
 z]	』
 z[]	『』
-_r	←
-_t	↓
-_d	↑
-_s	→
+;r	←
+;t	↓
+;d	↑
+;s	→
 [	「
 ]	」
 va	ゔぁ
@@ -150,6 +150,7 @@ _i	ぃ
 _u	ぅ
 _e	ぇ
 _o	ぉ
+_;	ぇ
 ka	か
 ki	き
 ku	く
