@@ -234,7 +234,7 @@ static bool is_volkey_held;
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool is_layer_SY_held;
     static bool is_fixed_swap_hands;
-    static bool is_alternative_swap_hands;
+    static bool is_alternating_swap_hands;
     static bool oneshot_ignore_key_release;
 
     if (oneshot_ignore_key_release && !record->event.pressed) {
@@ -271,7 +271,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(_BS, KC_NO):
             if (record->event.pressed) {
                 is_fixed_swap_hands       = false;
-                is_alternative_swap_hands = record->tap.count > 1;
+                is_alternating_swap_hands = record->tap.count > 1;
                 swap_hands_off();
             }
             return false;
@@ -281,14 +281,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     if (is_fixed_swap_hands) {
                         is_fixed_swap_hands = false;
                         swap_hands_off();
-                    } else if (is_alternative_swap_hands) {
+                    } else if (is_alternating_swap_hands) {
                         swap_hands_toggle();
                     } else {
                         swap_hands_on();
                     }
                 } else {
                     is_fixed_swap_hands       = true;
-                    is_alternative_swap_hands = false;
+                    is_alternating_swap_hands = false;
                     swap_hands_on();
                 }
             }
@@ -300,7 +300,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             return false;
     }
 
-    if (is_alternative_swap_hands) {
+    if (is_alternating_swap_hands) {
         if (record->event.pressed && get_highest_layer(layer_state) == _BS && IS_UNILATERAL_INPUT(record, 0x77)) {
             mt_queue_t *mts = IS_UNILATERAL_INPUT(record, 0x0F) ? &lmts : &rmts;
             enqueue(mts, keycode);
@@ -404,7 +404,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 is_layer_SY_held = record->event.pressed;
             }
         case LT(_FN, KC_BSPC):
-            if (is_alternative_swap_hands && record->tap.count) {
+            if (is_alternating_swap_hands && record->tap.count) {
                 if (record->event.pressed) {
                     tap_code(keycode == LT(_SY, KC_SPC) ? KC_H : KC_P);
                 }
