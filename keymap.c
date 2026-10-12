@@ -236,8 +236,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool oneshot_ignore_key_release;
 
     if (oneshot_ignore_key_release && !record->event.pressed) {
-        oneshot_ignore_key_release = false;
+        is_volkey_held             = false;
         is_layer_SY_held           = false;
+        oneshot_ignore_key_release = false;
         return false;
     }
 
