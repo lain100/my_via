@@ -206,6 +206,8 @@ void send_mts_taps(mt_queue_t *mts, uint16_t keycode) {
         const uint8_t tap_part = QK_MOD_TAP_GET_TAP_KEYCODE(poped_key);
         if (is_caps_word_on()) {
             caps_word_press_user(tap_part);
+        } else if (poped_key == S(tap_part)) {
+            add_weak_mods(MOD_LSFT);
         }
         tap_code(tap_part);
         within_word(poped_key);
