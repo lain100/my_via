@@ -443,6 +443,8 @@ enum combos {
     CMB_SH_OS_TOGG2,
     CMB_ALTN_SH1,
     CMB_ALTN_SH2,
+    CMB_PSCR1,
+    CMB_PSCR2,
     CMB_LNG1,
     CMB_LNG2,
     CMB_OS_CTL,
@@ -460,6 +462,8 @@ const uint16_t PROGMEM cmb_sh_os_togg1[] = {KC_M, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_sh_os_togg2[] = {KC_C, KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_altn_sh1[]    = {KC_Z, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_altn_sh2[]    = {KC_C, KC_COMM, COMBO_END};
+const uint16_t PROGMEM cmb_pscr1[]       = {KC_Z, KC_M, KC_K, COMBO_END};
+const uint16_t PROGMEM cmb_pscr2[]       = {KC_C, KC_DOT, KC_COMM, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_os_ctl[]      = {KC_D, KC_W, COMBO_END};
@@ -478,6 +482,8 @@ combo_t key_combos[] = {
     [CMB_SH_OS_TOGG2] = COMBO(cmb_sh_os_togg2, LT(_BS, 1)),
     [CMB_ALTN_SH1]    = COMBO(cmb_altn_sh1, LT(_BS, KC_NO)),
     [CMB_ALTN_SH2]    = COMBO(cmb_altn_sh2, LT(_BS, KC_NO)),
+    [CMB_PSCR1]       = COMBO(cmb_pscr1, KC_PSCR),
+    [CMB_PSCR2]       = COMBO(cmb_pscr2, KC_PSCR),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(_BS, KC_LNG1)),
     [CMB_LNG2]        = COMBO(cmb_lng2, LT(_BS, KC_LNG2)),
     [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
@@ -573,9 +579,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SY,KC_SPC) ,_______       ,_______        ,_______       ,_______)       ,
 
   [_FN] = LAYOUT_universal(
-    KC_WBAK        ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD        ,KC_PSCR       ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
+    KC_WBAK        ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD        ,KC_WHOM       ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
     LGUI_T(KC_F10) ,LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11        ,                                     KC_F21         ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
-    KC_F12         ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)    ,                                     KC_WHOM        ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
+    KC_F12         ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)    ,                                     RALT(KC_F4)    ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
     _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,_______        ,_______        ,_______       ,_______        ,_______       ,_______)       ,
 
   [_SY] = LAYOUT_universal(
