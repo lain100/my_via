@@ -350,9 +350,8 @@ F15:: ShowClipHistory
 F17:: Click
 F18:: Send("+{MButton}")
 F19:: Click("R")
-F20:: Send("../")
+F20:: Reload
 F21:: Search("https://www.google.com/search?q=")
-F22:: Reload
 #^+t:: {
     TransDegree := WinGetTransparent("A")
     TransDegree := TransDegree ? TransDegree : 256

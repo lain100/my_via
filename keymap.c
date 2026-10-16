@@ -237,7 +237,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool is_alternating_swap_hands;
     static bool oneshot_ignore_key_release;
 
-    if (oneshot_ignore_key_release && !record->event.pressed) {
+    if (oneshot_ignore_key_release && keycode != LT(_BS, 2) && !record->event.pressed) {
         is_volkey_held             = false;
         is_layer_SY_held           = false;
         oneshot_ignore_key_release = false;
@@ -294,7 +294,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         case LT(_BS, 2):
-            if (!record->event.pressed) {
+            if (record->event.pressed) {
                 oneshot_ignore_key_release = true;
             }
             return false;
@@ -447,10 +447,14 @@ enum combos {
     CMB_PSCR2,
     CMB_LNG1,
     CMB_LNG2,
-    CMB_OS_CTL,
-    CMB_OS_SFT,
-    CMB_OS_ALT,
-    CMB_OS_GUI,
+    CMB_OS_CTL1,
+    CMB_OS_SFT1,
+    CMB_OS_ALT1,
+    CMB_OS_GUI1,
+    CMB_OS_CTL2,
+    CMB_OS_SFT2,
+    CMB_OS_ALT2,
+    CMB_OS_GUI2,
     CMB_MS_BTN1,
     CMB_MS_BTN2,
     CMB_MS_BTN3,
@@ -466,10 +470,14 @@ const uint16_t PROGMEM cmb_pscr1[]       = {KC_Z, KC_M, KC_K, COMBO_END};
 const uint16_t PROGMEM cmb_pscr2[]       = {KC_C, KC_DOT, KC_COMM, COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]        = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]        = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
-const uint16_t PROGMEM cmb_os_ctl[]      = {KC_D, KC_W, COMBO_END};
-const uint16_t PROGMEM cmb_os_sft[]      = {KC_L, KC_W, COMBO_END};
-const uint16_t PROGMEM cmb_os_alt[]      = {KC_L, KC_D, COMBO_END};
-const uint16_t PROGMEM cmb_os_gui[]      = {KC_L, KC_D, KC_W, COMBO_END};
+const uint16_t PROGMEM cmb_os_ctl1[]     = {KC_D, KC_W, COMBO_END};
+const uint16_t PROGMEM cmb_os_sft1[]     = {KC_L, KC_W, COMBO_END};
+const uint16_t PROGMEM cmb_os_alt1[]     = {KC_L, KC_D, COMBO_END};
+const uint16_t PROGMEM cmb_os_gui1[]     = {KC_L, KC_D, KC_W, COMBO_END};
+const uint16_t PROGMEM cmb_os_ctl2[]     = {KC_J, KC_O, COMBO_END};
+const uint16_t PROGMEM cmb_os_sft2[]     = {KC_J, KC_U, COMBO_END};
+const uint16_t PROGMEM cmb_os_alt2[]     = {KC_O, KC_U, COMBO_END};
+const uint16_t PROGMEM cmb_os_gui2[]     = {KC_J, KC_O, KC_U, COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]     = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]     = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]     = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
@@ -486,10 +494,14 @@ combo_t key_combos[] = {
     [CMB_PSCR2]       = COMBO(cmb_pscr2, KC_PSCR),
     [CMB_LNG1]        = COMBO(cmb_lng1, LT(_BS, KC_LNG1)),
     [CMB_LNG2]        = COMBO(cmb_lng2, LT(_BS, KC_LNG2)),
-    [CMB_OS_CTL]      = COMBO(cmb_os_ctl, OSM(MOD_LCTL)),
-    [CMB_OS_SFT]      = COMBO(cmb_os_sft, OSM(MOD_LSFT)),
-    [CMB_OS_ALT]      = COMBO(cmb_os_alt, OSM(MOD_LALT)),
-    [CMB_OS_GUI]      = COMBO(cmb_os_gui, OSM(MOD_LGUI)),
+    [CMB_OS_CTL1]     = COMBO(cmb_os_ctl1, OSM(MOD_LCTL)),
+    [CMB_OS_SFT1]     = COMBO(cmb_os_sft1, OSM(MOD_LSFT)),
+    [CMB_OS_ALT1]     = COMBO(cmb_os_alt1, OSM(MOD_LALT)),
+    [CMB_OS_GUI1]     = COMBO(cmb_os_gui1, OSM(MOD_LGUI)),
+    [CMB_OS_CTL2]     = COMBO(cmb_os_ctl2, OSM(MOD_RCTL)),
+    [CMB_OS_SFT2]     = COMBO(cmb_os_sft2, OSM(MOD_RSFT)),
+    [CMB_OS_ALT2]     = COMBO(cmb_os_alt2, OSM(MOD_RALT)),
+    [CMB_OS_GUI2]     = COMBO(cmb_os_gui2, OSM(MOD_RGUI)),
     [CMB_MS_BTN1]     = COMBO(cmb_ms_btn1, KC_MS_BTN1),
     [CMB_MS_BTN2]     = COMBO(cmb_ms_btn2, KC_MS_BTN2),
     [CMB_MS_BTN3]     = COMBO(cmb_ms_btn3, KC_MS_BTN3),
@@ -497,9 +509,15 @@ combo_t key_combos[] = {
 // clang-format on
 
 bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode, keyrecord_t *record) {
+    layer_state_t layer = get_highest_layer(layer_state);
     switch (combo_index) {
+        case CMB_OS_CTL2 ... CMB_OS_GUI2:
+            if (layer != _FN) {
+                return false;
+            }
+            break;
         case CMB_MS_BTN1 ... CMB_MS_BTN3:
-            if (IS_LAYER_ON(_NV)) {
+            if (layer == _NV) {
                 return false;
             }
     }
@@ -581,8 +599,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_FN] = LAYOUT_universal(
     KC_WBAK        ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD        ,KC_WHOM       ,KC_PGUP        ,KC_PGDN       ,KC_WBAK        ,
     LGUI_T(KC_F10) ,LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11        ,                                     KC_F21         ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
-    KC_F12         ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)    ,                                     RALT(KC_F4)    ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
-    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,_______        ,_______        ,_______       ,_______        ,_______       ,_______)       ,
+    KC_F12         ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)    ,                                     KC_ENT         ,KC_F17        ,KC_F18         ,KC_F19        ,RALT(KC_F4)    ,
+    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,KC_P           ,_______        ,_______       ,_______        ,_______       ,_______)       ,
 
   [_SY] = LAYOUT_universal(
     KC_BSPC        ,KC_1         ,KC_2         ,KC_3         ,KC_DEL        ,                                     KC_DEL         ,S(KC_COMM)    ,KC_EQL         ,S(KC_DOT)     ,KC_BSPC        ,
