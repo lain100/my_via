@@ -344,14 +344,24 @@ CryptStringToBinary(str) {
 }
 
 Tips(msg, delay := 1000) => (ToolTip(msg) SetTimer(ToolTip, -delay))
-Search(url) => (Send("^{c}") Sleep(200) Run(url A_Clipboard))
 
 F15:: ShowClipHistory
 F17:: Click
 F18:: Send("+{MButton}")
 F19:: Click("R")
 F20:: Reload
-F21:: Search("https://www.google.com/search?q=")
+F21:: {
+    Send("^{c}") Sleep(200)
+    _Gui := Gui("-Caption")
+    _Gui.Onevent("Escape", (*) => _Gui.Destroy())
+    txt := _Gui.AddEdit()
+    txt.Value := Trim(A_Clipboard)
+    btn := _Gui.AddButton("Default", "Search")
+    btn.OnEvent("Click", (*) => (
+        Run("https://www.google.com/search?q=" txt.Value)
+        _Gui.Destroy()))
+    _Gui.Show()
+}
 #^+t:: {
     TransDegree := WinGetTransparent("A")
     TransDegree := TransDegree ? TransDegree : 256
