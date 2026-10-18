@@ -322,20 +322,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode) {
         case LT(_BS, KC_F1):
-            if (record->event.pressed) {
-                if (record->tap.count <= 1) {
-                    nav.type = NAV_UNDO_REDO;
+            nav.type = NAV_UNDO_REDO;
+            if (record->tap.count > 1) {
+                nav.type = NAV_NONE;
+                if (record->event.pressed) {
+                    register_mods(MOD_LGUI);
+                    register_code(KC_SLSH);
+                    unregister_mods(MOD_LGUI);
                 } else {
-                    tap_code(KC_APP);
+                    unregister_code(KC_SLSH);
                 }
             }
             return false;
         case LT(_BS, KC_F2)... LT(_BS, KC_F5): {
             static const uint8_t mods[2][4] = {
                 {MOD_LALT, MOD_LSFT | MOD_LCTL, MOD_LCTL, MOD_LCTL},
-                {MOD_LGUI, 0, 0, MOD_LCTL},
+                {0, 0, 0, MOD_LCTL},
             };
-            static const uint8_t codes[4]   = {KC_SLSH, KC_F15, KC_F16, KC_C};
+            static const uint8_t codes[4]   = {KC_APP, KC_F15, KC_F16, KC_C};
             const uint8_t        index      = keycode - LT(_BS, KC_F2);
             const uint8_t        saved_mods = get_mods();
             uint8_t              mod        = mods[!record->tap.count][index];
