@@ -351,17 +351,21 @@ F18:: Send("+{MButton}")
 F19:: Click("R")
 F20:: Reload
 F21:: {
-    Send("^{c}") Sleep(200)
-    _Gui := Gui("-Caption")
-    _Gui.Onevent("Escape", (*) => _Gui.Destroy())
-    txt := _Gui.AddEdit()
-    txt.Value := Trim(A_Clipboard)
-    btn := _Gui.AddButton("Default", "Search")
+    static _Gui := Gui("-Caption")
+    static txt := _Gui.AddEdit("w300")
+    static btn := _Gui.AddButton("Default", "Search")
+    _Gui.Onevent("Escape", (*) => _Gui.Hide())
     btn.OnEvent("Click", (*) => (
         Run("https://www.google.com/search?q=" txt.Value)
-        _Gui.Destroy()))
+        _Gui.Hide()))
+    OnMessage(0x0006, (wParam, *) => wParam = 0 ? _Gui.Hide() : "")
+
+    Send("^{c}")
+    Sleep(200)
+    txt.Value := Trim(A_Clipboard)
     _Gui.Show()
 }
+F22:: Run("C:\Users\" A_UserName "\AppData\Local\Microsoft\WindowsApps\Microsoft.Paint_8wekyb3d8bbwe\mspaint.exe")
 #^+t:: {
     TransDegree := WinGetTransparent("A")
     TransDegree := TransDegree ? TransDegree : 256
