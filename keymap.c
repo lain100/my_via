@@ -514,20 +514,20 @@ const uint16_t PROGMEM cmb_os_ctl1[]  = {KC_D, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_sft1[]  = {KC_L, KC_W, COMBO_END};
 const uint16_t PROGMEM cmb_os_alt1[]  = {KC_L, KC_D, COMBO_END};
 const uint16_t PROGMEM cmb_os_gui1[]  = {KC_L, KC_D, KC_W, COMBO_END};
-const uint16_t PROGMEM cmb_os_ctl2[]  = {KC_J, KC_O, COMBO_END};
-const uint16_t PROGMEM cmb_os_sft2[]  = {KC_J, KC_U, COMBO_END};
+const uint16_t PROGMEM cmb_os_ctl2[]  = {KC_Q, KC_O, COMBO_END};
+const uint16_t PROGMEM cmb_os_sft2[]  = {KC_Q, KC_U, COMBO_END};
 const uint16_t PROGMEM cmb_os_alt2[]  = {KC_O, KC_U, COMBO_END};
-const uint16_t PROGMEM cmb_os_gui2[]  = {KC_J, KC_O, KC_U, COMBO_END};
-const uint16_t PROGMEM cmb_pscr1[]    = {KC_W, KC_Q, COMBO_END};
-const uint16_t PROGMEM cmb_pscr2[]    = {KC_Q, KC_J, COMBO_END};
+const uint16_t PROGMEM cmb_os_gui2[]  = {KC_Q, KC_O, KC_U, COMBO_END};
+const uint16_t PROGMEM cmb_pscr1[]    = {KC_W, KC_V, COMBO_END};
+const uint16_t PROGMEM cmb_pscr2[]    = {KC_QUOT, KC_Q, COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]  = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]  = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]  = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_lng1[]     = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]     = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
-const uint16_t PROGMEM cmb_int4[]     = {KC_Z, KC_K, COMBO_END};
-const uint16_t PROGMEM cmb_os_sh1[]   = {KC_M, KC_K, COMBO_END};
-const uint16_t PROGMEM cmb_os_sh2[]   = {KC_C, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_int4[]     = {KC_Z, KC_C, COMBO_END};
+const uint16_t PROGMEM cmb_os_sh1[]   = {KC_M, KC_C, COMBO_END};
+const uint16_t PROGMEM cmb_os_sh2[]   = {KC_X, KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_ignr_rl1[] = {KC_Z, KC_M, COMBO_END};
 const uint16_t PROGMEM cmb_ignr_rl2[] = {KC_DOT, KC_COMM, COMBO_END};
 
@@ -627,15 +627,15 @@ __attribute__((weak)) const keypos_t PROGMEM hand_swap_config[MATRIX_ROWS][MATRI
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // keymap for VIA
   [_BS] = LAYOUT_universal(
-    KC_F           ,KC_L         ,KC_D         ,KC_W         ,KC_Q          ,                                     KC_Q           ,KC_J          ,KC_O           ,KC_U          ,KC_X           ,
+    KC_F           ,KC_L         ,KC_D         ,KC_W         ,KC_V          ,                                     KC_QUOT        ,KC_Q          ,KC_O           ,KC_U          ,KC_J           ,
     LGUI_T(KC_N)   ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    KC_B           ,KC_Z         ,KC_M         ,KC_K         ,KC_V          ,                                     S(KC_MINS)     ,KC_C          ,KC_DOT         ,KC_COMM       ,KC_SCLN        ,
+    KC_B           ,KC_Z         ,KC_M         ,KC_C         ,KC_K          ,                                     S(KC_MINS)     ,KC_X          ,KC_DOT         ,KC_COMM       ,KC_SCLN        ,
     LT(_GM,KC_NO)  ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_P),LT(_FN,KC_BSPC),LT(_SM,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
-    KC_F           ,KC_X         ,KC_K         ,KC_Z         ,KC_Q          ,                                     KC_Q           ,KC_Z          ,KC_W           ,KC_X          ,KC_F           ,
+    KC_F           ,KC_X         ,KC_K         ,KC_Z         ,KC_V          ,                                     KC_V           ,KC_Z          ,KC_W           ,KC_X          ,KC_F           ,
     KC_E           ,KC_H         ,KC_J         ,KC_L         ,KC_G          ,                                     KC_G           ,KC_A          ,KC_S           ,KC_D          ,KC_E           ,
-    KC_B           ,KC_R         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_V           ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
+    KC_B           ,KC_R         ,KC_M         ,KC_C         ,KC_Q          ,                                     KC_Q           ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
     _______        ,_______      ,_______      ,_______      ,LT(_NV,KC_SPC),_______     ,LT(_FN,KC_P)   ,KC_SPC         ,_______       ,_______        ,_______       ,_______)       ,
 
   [_NV] = LAYOUT_universal(
