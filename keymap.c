@@ -75,7 +75,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     } else {
         if (get_highest_layer(layer_state)) {
             is_quick_succession_input = false;
-        } else if (tap_part <= KC_Z && keycode == inter_keycode) {
+        } else if (keycode == inter_keycode && tap_part <= KC_Z && !IS_EXCEPTIONAL_INPUT(keycode, record)) {
             is_quick_succession_input = true;
         }
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
@@ -117,7 +117,6 @@ enum navkey_types {
     NAV_UNDO_REDO,
     NAV_TAB,
     NAV_HJKL,
-    NAV_WASD,
 };
 
 typedef struct {
@@ -371,10 +370,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_J:
         case KC_K:
         case KC_L:
-        case KC_W:
-        case KC_A:
-        case KC_S:
-        case KC_D:
             // Only one synthesized navigation key may be held at a time.
             if (nav.registered) {
                 nav.registered = false;
@@ -416,24 +411,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                                 return true;
                         }
                         break;
-                    case NAV_WASD:
-                        switch (keycode) {
-                            case KC_W:
-                                nav.keycode = KC_UP;
-                                break;
-                            case KC_A:
-                                nav.keycode = KC_LEFT;
-                                break;
-                            case KC_S:
-                                nav.keycode = KC_DOWN;
-                                break;
-                            case KC_D:
-                                nav.keycode = KC_RGHT;
-                                break;
-                            default:
-                                return true;
-                        }
-                        break;
                     default:
                         return true;
                 }
@@ -459,14 +436,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             is_fixed_swap_hands       = false;
             is_alternating_swap_hands = false;
             nav.type                  = NAV_NONE;
+            swap_hands_off();
             if (record->tap.count > 1) {
                 if (IS_LAYER_ON(_GM)) {
-                    nav.type = record->event.key.row == 3 ? NAV_HJKL : NAV_WASD;
+                    nav.type = NAV_HJKL;
                 } else {
                     is_alternating_swap_hands = true;
                 }
             }
-            swap_hands_off();
         case LT(_NV, KC_H):
             if (!record->tap.count) {
                 layer_clear();
