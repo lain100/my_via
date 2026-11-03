@@ -123,7 +123,6 @@ enum navkey_types {
 typedef struct {
     uint8_t           keycode;
     enum navkey_types type;
-    bool              registered;
 } morph_key_t;
 
 static morph_key_t nav;
@@ -367,60 +366,67 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         case KC_RGHT ... KC_LEFT:
-        case KC_H:
-        case KC_J:
-        case KC_K:
-        case KC_L:
-            // Only one synthesized navigation key may be held at a time.
-            if (nav.registered) {
-                nav.registered = false;
-                unregister_code(nav.keycode);
-                if (!record->event.pressed) {
-                    return false;
-                }
+            switch (nav.type) {
+                case NAV_UNDO_REDO:
+                    switch (keycode) {
+                        case KC_RGHT:
+                            keycode = KC_Y;
+                            break;
+                        default:
+                            keycode = KC_Z;
+                    }
+                    break;
+                case NAV_TAB:
+                    nav.keycode = keycode;
+                    keycode     = KC_TAB;
+                    break;
+                default:
+                    return true;
             }
             if (record->event.pressed) {
                 const uint8_t saved_mods = get_mods();
                 switch (nav.type) {
                     case NAV_UNDO_REDO:
-                        // Send Ctrl+Z / Ctrl+Y regardless of currently held modifiers.
                         clear_mods();
                         register_mods(MOD_LCTL);
-                        nav.keycode = keycode == KC_LEFT ? KC_Z : KC_Y;
-                        break;
-                    case NAV_TAB:
-                        if (keycode == KC_LEFT) {
-                            register_mods(MOD_LSFT);
-                        }
-                        nav.keycode = KC_TAB;
-                        break;
-                    case NAV_HJKL:
-                        switch (keycode) {
-                            case KC_H:
-                                nav.keycode = KC_LEFT;
-                                break;
-                            case KC_J:
-                                nav.keycode = KC_DOWN;
-                                break;
-                            case KC_K:
-                                nav.keycode = KC_UP;
-                                break;
-                            case KC_L:
-                                nav.keycode = KC_RGHT;
-                                break;
-                            default:
-                                return true;
-                        }
                         break;
                     default:
-                        return true;
+                        if (nav.keycode == KC_LEFT) {
+                            register_mods(MOD_LSFT);
+                        }
                 }
-                register_code(nav.keycode);
+                register_code(keycode);
                 set_mods(saved_mods);
-                nav.registered = true;
-                return false;
+            } else {
+                unregister_code(keycode);
             }
-            break;
+            return false;
+        case KC_H:
+        case KC_J:
+        case KC_K:
+        case KC_L:
+            if (nav.type != NAV_HJKL) {
+                break;
+            }
+            switch (keycode) {
+                case KC_H:
+                    keycode = KC_LEFT;
+                    break;
+                case KC_J:
+                    keycode = KC_DOWN;
+                    break;
+                case KC_K:
+                    keycode = KC_UP;
+                    break;
+                default:
+                    keycode = KC_RGHT;
+            }
+            if (record->event.pressed) {
+                register_code(keycode);
+            } else {
+                unregister_code(keycode);
+            }
+            return false;
         case LT(_SM, KC_SPC):
             if (!record->tap.count) {
                 is_layer_SM_held = record->event.pressed;
