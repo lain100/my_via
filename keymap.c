@@ -53,7 +53,8 @@ uint8_t unpack_mods(uint16_t keycode) {
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     static bool    is_after_ag_input;
     static bool    is_left_side_held;
-    const uint16_t tap_part = 0xFF & keycode;
+    const uint16_t tap_part             = 0xFF & keycode;
+    const bool     is_exceptional_input = tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record);
 
     if (record->event.pressed) {
         if (is_after_ag_input) {
@@ -63,7 +64,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
         }
         const bool is_expired = timer_elapsed(inter_record.event.time) > QUICK_TAP_TERM;
-        if (tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record) || is_expired) {
+        if (is_exceptional_input || is_expired) {
             is_quick_succession_input = false;
             inter_keycode             = keycode;
             if (is_expired && IS_QK_MOD_TAP(keycode) && (keycode & (QK_LALT | QK_LGUI))) {
@@ -75,7 +76,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     } else {
         if (get_highest_layer(layer_state)) {
             is_quick_succession_input = false;
-        } else if (keycode == inter_keycode && tap_part <= KC_Z && !IS_EXCEPTIONAL_INPUT(keycode, record)) {
+        } else if (keycode == inter_keycode && !is_exceptional_input) {
             is_quick_succession_input = true;
         }
         tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
@@ -542,7 +543,7 @@ bool combo_should_trigger(uint16_t combo_index, combo_t *combo, uint16_t keycode
             }
             break;
         case CMB_MS_BTN1 ... CMB_MS_BTN3:
-            if (layer == _NV) {
+            if (layer == _NV || nav.type == NAV_HJKL) {
                 return false;
             }
     }
