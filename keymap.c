@@ -439,24 +439,34 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false;
             }
             break;
-        case LT(_GM, KC_NO):
-            is_fixed_swap_hands       = false;
-            is_alternating_swap_hands = false;
-            nav.type                  = NAV_NONE;
-            swap_hands_off();
-            if (record->tap.count > 1) {
-                if (IS_LAYER_ON(_GM)) {
-                    nav.type = NAV_HJKL;
-                } else {
-                    is_alternating_swap_hands = true;
-                }
-            }
         case LT(_NV, KC_H):
             if (!record->tap.count) {
                 layer_clear();
                 if (!record->event.pressed) {
                     unregister_mods(MOD_HYPR);
                     nav.type = NAV_NONE;
+                }
+            }
+            break;
+        case LT(_GM, KC_NO):
+            if (!record->event.pressed) {
+                nav.type = NAV_NONE;
+                switch (nav.keycode) {
+                    case KC_VOLU ... KC_VOLD:
+                        break;
+                    default:
+                        is_fixed_swap_hands       = false;
+                        is_alternating_swap_hands = false;
+                        swap_hands_off();
+                        layer_clear();
+                }
+                nav.keycode = KC_NO;
+            }
+            if (record->tap.count > 1) {
+                if (IS_LAYER_ON(_GM)) {
+                    nav.type = NAV_HJKL;
+                } else {
+                    is_alternating_swap_hands = true;
                 }
             }
     }
@@ -511,7 +521,7 @@ const uint16_t PROGMEM cmb_lng1[]     = {LCTL_T(KC_S), LCS_T(KC_G), COMBO_END};
 const uint16_t PROGMEM cmb_lng2[]     = {LT(_BS, KC_MINS), RCTL_T(KC_Y), COMBO_END};
 const uint16_t PROGMEM cmb_int4[]     = {KC_Z, KC_C, COMBO_END};
 const uint16_t PROGMEM cmb_os_sh1[]   = {KC_M, KC_C, COMBO_END};
-const uint16_t PROGMEM cmb_os_sh2[]   = {KC_V, KC_DOT, COMBO_END};
+const uint16_t PROGMEM cmb_os_sh2[]   = {KC_K, KC_DOT, COMBO_END};
 const uint16_t PROGMEM cmb_ignr_rl1[] = {KC_Z, KC_M, COMBO_END};
 const uint16_t PROGMEM cmb_ignr_rl2[] = {KC_DOT, KC_COMM, COMBO_END};
 
@@ -585,8 +595,8 @@ bool caps_word_press_user(uint16_t keycode) {
 }
 
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
-    if (is_keyball_set_volume_mode) {
-        const uint16_t keycode = mouse_report.x > 1 ? KC_VOLU : mouse_report.x < -1 ? KC_VOLD : KC_NO;
+    if (is_keyball_set_volume_mode && abs(mouse_report.x) > 1) {
+        const uint16_t keycode = mouse_report.x > 1 ? KC_VOLU : KC_VOLD;
         register_code(keycode);
         unregister_code(keycode);
         mouse_report = (report_mouse_t){};
@@ -613,7 +623,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_BS] = LAYOUT_universal(
     KC_F           ,KC_L         ,KC_D         ,KC_W         ,KC_DEL        ,                                     KC_DEL         ,KC_Q          ,KC_O           ,KC_U          ,KC_J           ,
     LGUI_T(KC_N)   ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_MINS),RCTL_T(KC_Y)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    KC_B           ,KC_Z         ,KC_M         ,KC_C         ,KC_K          ,                                     KC_X           ,KC_V          ,KC_DOT         ,KC_COMM       ,KC_SCLN        ,
+    KC_B           ,KC_Z         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_X           ,KC_K          ,KC_DOT         ,KC_COMM       ,KC_SCLN        ,
     LT(_GM,KC_NO)  ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_H)  ,LT(_FN,KC_P),LT(_FN,KC_BSPC),LT(_SM,KC_SPC) ,KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
