@@ -575,6 +575,7 @@ uint8_t combo_ref_from_layer(uint8_t layer) {
 bool caps_word_press_user(uint16_t keycode) {
     switch (keycode) {
         case KC_A ... KC_Z:
+        case KC_MINS:
             add_weak_mods(MOD_LSFT);
             return true;
         case KC_QUOT:
@@ -589,7 +590,6 @@ bool caps_word_press_user(uint16_t keycode) {
         case KC_EQL:
         case KC_BSPC:
         case KC_SLSH:
-        case KC_MINS:
         case S(KC_MINS):
             return true;
     }

@@ -25,12 +25,7 @@ vv	ゔぃ
 vj	ゔゅ
 v;	ゔぇ
 vq	ゔょ
-l	っ
-kx	きゃ
-kv	きぃ
-kj	きゅ
-k;	きぇ
-kq	きょ
+k	っ
 cx	きゃ
 cv	きぃ
 cj	きゅ
@@ -150,27 +145,20 @@ u	う
 wu	う
 e	え
 o	お
-;a	ぁ
-;i	ぃ
-;u	ぅ
-;e	ぇ
-;o	ぉ
-;v	ぃ
-;;	ぇ
-ka	か
-ki	き
-ku	く
-ke	け
-ko	こ
-;ka	ヵ
-;ke	ヶ
+la	ぁ
+li	ぃ
+lu	ぅ
+le	ぇ
+lo	ぉ
+lv	ぃ
+l;	ぇ
 ca	か
 ci	き
 cu	く
 ce	け
 co	こ
-;ca	ヵ
-;ce	ヶ
+lca	ヵ
+lce	ヶ
 ga	が
 gi	ぎ
 gu	ぐ
@@ -181,11 +169,6 @@ si	し
 su	す
 se	せ
 so	そ
-kwa	くぁ
-kwi	くぃ
-kwu	くぅ
-kwe	くぇ
-kwo	くぉ
 cwa	くぁ
 cwi	くぃ
 cwu	くぅ
@@ -247,20 +230,20 @@ mi	み
 mu	む
 me	め
 mo	も
-;x	ゃ
+lx	ゃ
 x	や
 wv	ゐ
-;j	ゅ
+lj	ゅ
 j	ゆ
 w;	ゑ
-;q	ょ
+lq	ょ
 q	よ
 ra	ら
 ri	り
 ru	る
 re	れ
 ro	ろ
-;wa	ゎ
+lwa	ゎ
 wa	わ
 wi	うぃ
 we	うぇ
@@ -275,7 +258,6 @@ mst	ました		DisplayAmbiguousResult
 mstg	ましたが
 msn	ません		DisplayAmbiguousResult
 msng	ませんが
-kt	こと
 ct	こと
 sr	され		DisplayAmbiguousResult
 srzr	それぞれ
@@ -287,20 +269,13 @@ sstm	させても
 st	して		DisplayAmbiguousResult
 str	している
 sn	しな		DisplayAmbiguousResult
-sk	しか
 sc	しか
 sg	すぎ
 sm	しま		DisplayAmbiguousResult
-smsk	しますか
 smsc	しますか
 smsg	しますが
 smsn	しません
 smst	しました
-kr	これ		DisplayAmbiguousResult
-krr	これら
-km	かも
-kn	かな
-kd	けど
 cr	これ		DisplayAmbiguousResult
 crr	これら
 cm	かも
@@ -314,13 +289,11 @@ ndsg	のですが
 ng	のが
 nn	のに
 dm	でも
-dk	でき
 dc	でき
 dt	だと
 dg	だが
 gt	がち
 tm	ため
-tk	てき
 tc	てき
 td	ただ
 tb	たび
@@ -332,7 +305,6 @@ zr	ざる
 nr	なる		DisplayAmbiguousResult
 nrms	なります		DisplayAmbiguousResult
 nb	ねば
-nk	なか		DisplayAmbiguousResult
 nc	なか		DisplayAmbiguousResult
 nz	なぜ
 rz	らず
@@ -352,7 +324,6 @@ ns	なし		DisplayAmbiguousResult
 nstm	にしても
 nt	にち
 ts	たし		DisplayAmbiguousResult
-tskn	たしかに
 tscn	たしかに
 tsth	としては
 tsrt	とすると
@@ -368,18 +339,14 @@ ws	わせ
 rs	らせ		DisplayAmbiguousResult
 rsrr	らせられ		DisplayAmbiguousResult
 rsrrr	らせられる
-nkrb	なければ
 ncrb	なければ
-bk	べき
 bc	べき
 tr	ている
 dr	でいる
 dn	での
-snkr	しなければ
 sncr	しなければ
 dst	でした		DisplayAmbiguousResult
 nrmst	なりました
 nrgt	なりがち
-kz	かず
 cz	かず
 mz	まず
