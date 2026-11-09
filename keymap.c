@@ -51,10 +51,9 @@ uint8_t unpack_mods(uint16_t keycode) {
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    static bool    is_after_ag_input;
-    static bool    is_left_side_held;
-    const uint16_t tap_part             = 0xFF & keycode;
-    const bool     is_exceptional_input = tap_part > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record);
+    static bool is_after_ag_input;
+    static bool is_left_side_held;
+    const bool  is_exceptional_input = (0xFF & keycode) > KC_Z || IS_EXCEPTIONAL_INPUT(keycode, record);
 
     if (record->event.pressed) {
         if (is_after_ag_input) {
@@ -427,7 +426,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(keycode);
             }
             return false;
-        case LT(_SM, KC_BSPC):
+        case LT(_SM, KC_ENT):
             if (!record->tap.count) {
                 is_layer_SM_held = record->event.pressed;
             }
@@ -630,8 +629,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_BS] = LAYOUT_universal(
     KC_F           ,KC_L         ,KC_D         ,KC_W         ,KC_DEL        ,                                     KC_DEL         ,KC_Q          ,KC_O           ,KC_U          ,KC_J           ,
     LGUI_T(KC_N)   ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_Y)   ,RCTL_T(KC_H)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
-    KC_B           ,KC_Z         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_X           ,KC_K          ,KC_DOT         ,KC_COMM       ,KC_SCLN        ,
-    LT(_GM,KC_NO)  ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_SPC),LT(_FN,KC_P),LT(_FN,KC_MINS),LT(_SM,KC_BSPC),KC_ENT        ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
+    KC_B           ,KC_Z         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_X           ,KC_K          ,KC_DOT         ,KC_COMM       ,KC_MINS        ,
+    LT(_GM,KC_NO)  ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_SPC),LT(_FN,KC_P),LT(_FN,KC_BSPC),LT(_SM,KC_ENT) ,RCTL(KC_PSCR) ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
     KC_F           ,KC_X         ,KC_K         ,KC_Z         ,KC_Q          ,                                     KC_Q           ,KC_Z          ,KC_W           ,KC_X          ,KC_F           ,
@@ -642,8 +641,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_NV] = LAYOUT_universal(
     KC_BSPC        ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL        ,                                     KC_DEL         ,KC_LBRC       ,S(KC_QUOT)     ,KC_RBRC       ,KC_BSPC        ,
     LGUI_T(KC_HOME),KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,LCS_T(KC_END) ,                                     LT(_BS,KC_3)   ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
-    LT(_BS,KC_F1)  ,LT(_BS,KC_F2),LT(_BS,KC_F3),LT(_BS,KC_F4),LT(_BS,KC_F5) ,                                     KC_BSLS        ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,S(KC_2)        ,
-    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_MINS),LT(_SM,KC_BSPC),_______       ,_______        ,_______       ,_______)       ,
+    LT(_BS,KC_F1)  ,LT(_BS,KC_F2),LT(_BS,KC_F3),LT(_BS,KC_F4),LT(_BS,KC_F5) ,                                     KC_BSLS        ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,KC_SCLN        ,
+    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SM,KC_ENT) ,_______       ,_______        ,_______       ,_______)       ,
 
   [_FN] = LAYOUT_universal(
     KC_WBAK        ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD        ,KC_PGDN       ,KC_WHOM        ,KC_PGUP       ,KC_WBAK        ,
@@ -654,7 +653,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_SM] = LAYOUT_universal(
     KC_BSPC        ,KC_1         ,KC_2         ,KC_3         ,KC_DEL        ,                                     KC_DEL         ,S(KC_COMM)    ,KC_EQL         ,S(KC_DOT)     ,KC_BSPC        ,
     KC_0           ,KC_4         ,KC_5         ,KC_6         ,S(KC_4)       ,                                     S(KC_7)        ,S(KC_EQL)     ,KC_SLSH        ,S(KC_8)       ,S(KC_5)        ,
-    KC_COMM        ,KC_7         ,KC_8         ,KC_9         ,KC_DOT        ,                                     S(KC_BSLS)     ,S(KC_1)       ,S(KC_SLSH)     ,S(KC_GRV)     ,S(KC_6)        ,
+    S(KC_2)        ,KC_7         ,KC_8         ,KC_9         ,KC_DOT        ,                                     S(KC_BSLS)     ,S(KC_1)       ,S(KC_SLSH)     ,S(KC_GRV)     ,S(KC_6)        ,
     _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,_______        ,_______        ,_______       ,_______        ,_______       ,_______)       ,
 };
 // clang-format on
