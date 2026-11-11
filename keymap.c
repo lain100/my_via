@@ -330,7 +330,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             const uint8_t        mod        = mods[!record->tap.count][index];
             keycode                         = record->tap.count ? (index == 3 ? KC_V : KC_TAB) : codes[index];
             if (record->event.pressed) {
-                clear_mods();
+                if (keycode != KC_APP) {
+                    clear_mods();
+                }
                 register_mods(mod);
                 register_code(keycode);
                 if (mod != MOD_LALT) {
