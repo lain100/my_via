@@ -78,7 +78,7 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
         } else if (keycode == inter_keycode && !is_exceptional_input) {
             is_quick_succession_input = true;
         }
-        tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
+        const tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
         if (pressed_keys[tap.index] & tap.bitmask) {
             pressed_keys[tap.index] &= ~tap.bitmask;
             unregister_mods(unpack_mods(keycode));
@@ -103,7 +103,7 @@ uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
 
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     if (is_quick_succession_input) {
-        tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
+        const tap_bit_t tap = TAP_BIT_FROM_KEYCODE(keycode);
         pressed_keys[tap.index] |= tap.bitmask;
         record->tap.interrupted = false;
         record->tap.count++;
@@ -437,13 +437,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (!record->tap.count) {
                 if (IS_LAYER_OFF(_GM)) {
                     layer_clear();
+                    if (!record->event.pressed) {
+                        nav.type = NAV_NONE;
+                    }
                 }
                 if (!record->event.pressed) {
                     unregister_mods(MOD_HYPR);
-                    nav.type = NAV_NONE;
                 }
-            }
-            if (is_alternating_swap_hands && record->tap.count) {
+            } else if (is_alternating_swap_hands) {
                 keycode = KC_ENT;
                 if (record->event.pressed) {
                     register_code(keycode);
