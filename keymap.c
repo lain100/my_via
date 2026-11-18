@@ -44,6 +44,7 @@ static uint16_t    inter_keycode;
 static keyrecord_t inter_record;
 
 static bool is_keyball_set_volume_mode;
+static bool is_keyball_handled_volume;
 
 uint8_t unpack_mods(uint16_t keycode) {
     const uint8_t mods = QK_MOD_TAP_GET_MODS(keycode);
@@ -456,25 +457,23 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case LT(_GM, KC_NO):
             if (!record->event.pressed) {
-                switch (nav.keycode) {
-                    case KC_VOLU ... KC_VOLD:
-                        nav.keycode = KC_NO;
-                        break;
-                    default:
-                        nav.type                  = NAV_NONE;
-                        is_fixed_swap_hands       = false;
-                        is_alternating_swap_hands = false;
-                        swap_hands_off();
-                        if (!record->tap.count) {
-                            layer_clear();
-                        }
-                        if (record->tap.count > 1) {
-                            if (IS_LAYER_ON(_GM)) {
-                                nav.type = NAV_HJKL;
-                            } else {
-                                is_alternating_swap_hands = true;
-                            }
-                        }
+                if (is_keyball_handled_volume) {
+                    is_keyball_handled_volume = false;
+                    break;
+                }
+                nav.type = NAV_NONE;
+                if (!record->tap.count) {
+                    layer_clear();
+                    swap_hands_off();
+                    is_fixed_swap_hands       = false;
+                    is_alternating_swap_hands = false;
+                }
+                if (record->tap.count > 1) {
+                    if (IS_LAYER_ON(_GM)) {
+                        nav.type = NAV_HJKL;
+                    } else {
+                        is_alternating_swap_hands = true;
+                    }
                 }
             }
     }
@@ -605,8 +604,8 @@ bool caps_word_press_user(uint16_t keycode) {
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     if (is_keyball_set_volume_mode) {
         if (abs(mouse_report.x) > 1) {
-            const uint16_t keycode = mouse_report.x > 1 ? KC_VOLU : KC_VOLD;
-            nav.keycode            = keycode;
+            is_keyball_handled_volume = true;
+            const uint16_t keycode    = mouse_report.x > 1 ? KC_VOLU : KC_VOLD;
             register_code(keycode);
             unregister_code(keycode);
         }
