@@ -236,6 +236,7 @@ void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    static bool is_layer_GM_off;
     static bool is_layer_SM_held;
     static bool is_fixed_swap_hands;
     static bool is_alternating_swap_hands;
@@ -456,10 +457,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         case LT(_GM, KC_NO):
-            if (!record->event.pressed) {
+            if (record->event.pressed) {
+                is_layer_GM_off = IS_LAYER_OFF(_GM);
+            } else {
                 if (is_keyball_handled_volume) {
                     is_keyball_handled_volume = false;
-                    break;
+                    return is_layer_GM_off;
                 }
                 nav.type = NAV_NONE;
                 if (!record->tap.count) {
