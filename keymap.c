@@ -444,7 +444,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                     }
                 }
                 if (!record->event.pressed) {
-                    unregister_mods(MOD_HYPR);
+                    unregister_mods(0xFF);
                 }
             } else if (is_alternating_swap_hands) {
                 keycode = KC_ENT;
@@ -468,7 +468,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (!record->tap.count) {
                     layer_clear();
                     swap_hands_off();
-                    unregister_mods(MOD_HYPR);
+                    unregister_mods(0xFF);
                     is_fixed_swap_hands       = false;
                     is_alternating_swap_hands = false;
                 }
