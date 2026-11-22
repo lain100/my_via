@@ -44,7 +44,6 @@ static uint16_t    inter_keycode;
 static keyrecord_t inter_record;
 
 static bool is_keyball_set_volume_mode;
-static bool is_keyball_handled_volume;
 
 uint8_t unpack_mods(uint16_t keycode) {
     const uint8_t mods = QK_MOD_TAP_GET_MODS(keycode);
@@ -112,20 +111,6 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     }
     return false;
 }
-
-enum navkey_types {
-    NAV_NONE,
-    NAV_UNDO_REDO,
-    NAV_TAB,
-    NAV_HJKL,
-};
-
-typedef struct {
-    uint8_t           keycode;
-    enum navkey_types type;
-} morph_key_t;
-
-static morph_key_t nav;
 
 void within_word(uint16_t keycode) {
     // clang-format off
@@ -235,14 +220,27 @@ void process_pended_keys(uint16_t keycode, keyrecord_t *record) {
     send_mts_taps(is_left_side ? &lmts : &rmts, keycode);
 }
 
+enum navkey_types {
+    NAV_NONE,
+    NAV_UNDO_REDO,
+    NAV_TAB,
+    NAV_HJKL,
+};
+
+static bool is_layer_GM_handled_anykey;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    static bool is_layer_GM_off;
-    static bool is_layer_SM_held;
-    static bool is_fixed_swap_hands;
-    static bool is_alternating_swap_hands;
-    static bool oneshot_ignore_key_release;
+    static bool              is_layer_GM_unabled_at_first;
+    static bool              is_layer_GM_held;
+    static bool              is_layer_SM_held;
+    static bool              is_fixed_swap_hands;
+    static bool              is_alternating_swap_hands;
+    static bool              oneshot_ignore_key_release;
+    static uint8_t           nav_keycode;
+    static enum navkey_types nav_type;
 
     if (oneshot_ignore_key_release && keycode != LT(_BS, 1) && !record->event.pressed) {
+        is_layer_GM_held           = false;
         is_layer_SM_held           = false;
         oneshot_ignore_key_release = false;
         return false;
@@ -258,7 +256,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case LT(_BS, KC_Y):
         case LT(_BS, KC_3):
             if (!record->tap.count) {
-                nav.type = record->event.pressed ? NAV_TAB : NAV_NONE;
+                nav_type = record->event.pressed ? NAV_TAB : NAV_NONE;
             }
         case QK_MOD_TAP ... QK_MOD_TAP_MAX:
             if (IS_LAYER_ON(_NV)) {
@@ -319,7 +317,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode) {
         case LT(_BS, KC_F1):
-            nav.type = record->tap.count <= 1 ? NAV_UNDO_REDO : NAV_NONE;
+            nav_type = record->tap.count <= 1 ? NAV_UNDO_REDO : NAV_NONE;
             return false;
         case LT(_BS, KC_F2)... LT(_BS, KC_F5): {
             static const uint8_t mods[2][4] = {
@@ -369,18 +367,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
         case KC_RGHT ... KC_LEFT:
-            switch (nav.type) {
+            switch (nav_type) {
                 case NAV_UNDO_REDO:
-                    switch (keycode) {
-                        case KC_RGHT:
-                            keycode = KC_Y;
-                            break;
-                        default:
-                            keycode = KC_Z;
-                    }
+                    keycode = keycode == KC_LEFT ? KC_Z : KC_Y;
                     break;
                 case NAV_TAB:
-                    nav.keycode = keycode;
+                    nav_keycode = keycode;
                     keycode     = KC_TAB;
                     break;
                 default:
@@ -388,13 +380,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             if (record->event.pressed) {
                 const uint8_t saved_mods = get_mods();
-                switch (nav.type) {
+                switch (nav_type) {
                     case NAV_UNDO_REDO:
                         clear_mods();
                         register_mods(MOD_LCTL);
                         break;
                     default:
-                        if (nav.keycode == KC_LEFT) {
+                        if (nav_keycode == KC_LEFT) {
                             register_mods(MOD_LSFT);
                         }
                 }
@@ -408,7 +400,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_J:
         case KC_K:
         case KC_L:
-            if (nav.type != NAV_HJKL) {
+            if (nav_type != NAV_HJKL) {
                 break;
             }
             switch (keycode) {
@@ -440,46 +432,67 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 if (IS_LAYER_OFF(_GM)) {
                     layer_clear();
                     if (!record->event.pressed) {
-                        nav.type = NAV_NONE;
+                        nav_type = NAV_NONE;
                     }
                 }
                 if (!record->event.pressed) {
                     unregister_mods(0xFF);
                 }
-            } else if (is_alternating_swap_hands) {
-                keycode = KC_ENT;
-                if (record->event.pressed) {
-                    register_code(keycode);
-                } else {
-                    unregister_code(keycode);
-                }
-                return false;
             }
             break;
         case LT(_GM, KC_NO):
+            if (!record->tap.count) {
+                is_layer_GM_held = record->event.pressed;
+            }
             if (record->event.pressed) {
-                is_layer_GM_off = IS_LAYER_OFF(_GM);
+                is_layer_GM_unabled_at_first = IS_LAYER_OFF(_GM);
             } else {
-                if (is_keyball_handled_volume) {
-                    is_keyball_handled_volume = false;
-                    return is_layer_GM_off;
+                if (is_layer_GM_handled_anykey) {
+                    is_layer_GM_handled_anykey = false;
+                    return is_layer_GM_unabled_at_first;
                 }
-                nav.type = NAV_NONE;
-                if (!record->tap.count) {
-                    layer_clear();
-                    swap_hands_off();
-                    unregister_mods(0xFF);
-                    is_fixed_swap_hands       = false;
-                    is_alternating_swap_hands = false;
-                }
-                if (record->tap.count > 1) {
-                    if (IS_LAYER_ON(_GM)) {
-                        nav.type = NAV_HJKL;
-                    } else {
-                        is_alternating_swap_hands = true;
-                    }
+                switch (record->tap.count) {
+                    case 0:
+                        layer_clear();
+                        swap_hands_off();
+                        unregister_mods(0xFF);
+                        is_fixed_swap_hands = false;
+                    case 1:
+                        nav_type                  = NAV_NONE;
+                        is_alternating_swap_hands = false;
+                        break;
+                    default:
+                        if (IS_LAYER_ON(_GM)) {
+                            nav_type = NAV_HJKL;
+                        } else {
+                            is_alternating_swap_hands = true;
+                        }
                 }
             }
+            break;
+        case KC_R:
+        case KC_M:
+        case KC_C:
+            if (!is_layer_GM_held) {
+                break;
+            }
+            is_layer_GM_handled_anykey = true;
+            switch (keycode) {
+                case KC_R:
+                    keycode = KC_I;
+                    break;
+                case KC_M:
+                    keycode = KC_O;
+                    break;
+                default:
+                    keycode = KC_F;
+            }
+            if (record->event.pressed) {
+                register_code(keycode);
+            } else {
+                unregister_code(keycode);
+            }
+            return false;
     }
     return true;
 }
@@ -501,8 +514,6 @@ enum combos {
     CMB_OS_SFT2,
     CMB_OS_ALT2,
     CMB_OS_GUI2,
-    CMB_PSCR1,
-    CMB_PSCR2,
     CMB_MS_BTN1,
     CMB_MS_BTN2,
     CMB_MS_BTN3,
@@ -523,8 +534,6 @@ const uint16_t PROGMEM cmb_os_ctl2[]  = {KC_Q, KC_O, COMBO_END};
 const uint16_t PROGMEM cmb_os_sft2[]  = {KC_Q, KC_U, COMBO_END};
 const uint16_t PROGMEM cmb_os_alt2[]  = {KC_O, KC_U, COMBO_END};
 const uint16_t PROGMEM cmb_os_gui2[]  = {KC_Q, KC_O, KC_U, COMBO_END};
-const uint16_t PROGMEM cmb_pscr1[]    = {KC_W, KC_DEL, COMBO_END};
-const uint16_t PROGMEM cmb_pscr2[]    = {KC_DEL, KC_Q, COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn1[]  = {LSFT_T(KC_T), LCTL_T(KC_S), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn2[]  = {LALT_T(KC_R), LSFT_T(KC_T), COMBO_END};
 const uint16_t PROGMEM cmb_ms_btn3[]  = {LALT_T(KC_R), LCTL_T(KC_S), COMBO_END};
@@ -546,8 +555,6 @@ combo_t key_combos[] = {
     [CMB_OS_SFT2]     = COMBO(cmb_os_sft2, OSM(MOD_RSFT)),
     [CMB_OS_ALT2]     = COMBO(cmb_os_alt2, OSM(MOD_RALT)),
     [CMB_OS_GUI2]     = COMBO(cmb_os_gui2, OSM(MOD_RGUI)),
-    [CMB_PSCR1]       = COMBO(cmb_pscr1, KC_PSCR),
-    [CMB_PSCR2]       = COMBO(cmb_pscr2, KC_PSCR),
     [CMB_MS_BTN1]     = COMBO(cmb_ms_btn1, KC_MS_BTN1),
     [CMB_MS_BTN2]     = COMBO(cmb_ms_btn2, KC_MS_BTN2),
     [CMB_MS_BTN3]     = COMBO(cmb_ms_btn3, KC_MS_BTN3),
@@ -598,7 +605,6 @@ bool caps_word_press_user(uint16_t keycode) {
             }
         case KC_EQL:
         case KC_BSPC:
-        case KC_SLSH:
         case S(KC_MINS):
             return true;
     }
@@ -608,8 +614,8 @@ bool caps_word_press_user(uint16_t keycode) {
 report_mouse_t pointing_device_task_kb(report_mouse_t mouse_report) {
     if (is_keyball_set_volume_mode) {
         if (abs(mouse_report.x) > 1) {
-            is_keyball_handled_volume = true;
-            const uint16_t keycode    = mouse_report.x > 1 ? KC_VOLU : KC_VOLD;
+            is_layer_GM_handled_anykey = true;
+            const uint16_t keycode     = mouse_report.x > 1 ? KC_VOLU : KC_VOLD;
             register_code(keycode);
             unregister_code(keycode);
         }
@@ -644,13 +650,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_Q           ,KC_X         ,KC_W         ,KC_Z         ,KC_T          ,                                     KC_T           ,KC_Z          ,KC_K           ,KC_X          ,KC_Q           ,
     KC_E           ,KC_A         ,KC_S         ,KC_D         ,KC_G          ,                                     KC_G           ,KC_H          ,KC_J           ,KC_L          ,KC_E           ,
     KC_B           ,KC_R         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_V           ,KC_C          ,KC_M           ,KC_R          ,KC_B           ,
-    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_P)   ,KC_SPC         ,KC_F          ,KC_O           ,KC_I          ,_______)       ,
+    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_P)   ,KC_SPC         ,_______       ,_______        ,_______       ,_______)       ,
 
   [_NV] = LAYOUT_universal(
     KC_BSPC        ,KC_ESC       ,KC_UP        ,KC_ENT       ,KC_DEL        ,                                     KC_DEL         ,KC_LBRC       ,S(KC_QUOT)     ,KC_RBRC       ,KC_BSPC        ,
     LGUI_T(KC_HOME),KC_LEFT      ,KC_DOWN      ,KC_RGHT      ,LCS_T(KC_END) ,                                     LT(_BS,KC_3)   ,RCTL_T(KC_9)  ,RSFT_T(KC_QUOT),RALT_T(KC_0)  ,RGUI_T(KC_SCLN),
     LT(_BS,KC_F1)  ,LT(_BS,KC_F2),LT(_BS,KC_F3),LT(_BS,KC_F4),LT(_BS,KC_F5) ,                                     KC_BSLS        ,S(KC_LBRC)    ,KC_GRV         ,S(KC_RBRC)    ,KC_SCLN        ,
-    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SM,KC_ENT) ,RCTL(KC_PSCR) ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,_______)       ,
+    _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SM,KC_ENT) ,_______       ,_______        ,_______       ,_______)       ,
 
   [_FN] = LAYOUT_universal(
     KC_WBAK        ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD        ,KC_PGDN       ,KC_WHOM        ,KC_PGUP       ,KC_WBAK        ,
