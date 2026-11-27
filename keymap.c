@@ -644,7 +644,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_F           ,KC_L         ,KC_D         ,KC_W         ,KC_DEL        ,                                     KC_DEL         ,KC_Q          ,KC_O           ,KC_U          ,KC_J           ,
     LGUI_T(KC_N)   ,LALT_T(KC_R) ,LSFT_T(KC_T) ,LCTL_T(KC_S) ,LCS_T(KC_G)   ,                                     LT(_BS,KC_Y)   ,RCTL_T(KC_H)  ,RSFT_T(KC_A)   ,RALT_T(KC_I)  ,RGUI_T(KC_E)   ,
     KC_B           ,KC_Z         ,KC_M         ,KC_C         ,KC_V          ,                                     KC_X           ,KC_K          ,KC_DOT         ,KC_COMM       ,KC_MINS        ,
-    LT(_GM,KC_NO)  ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_ENT       ,LT(_NV,KC_SPC),LT(_FN,KC_P),LT(_FN,KC_BSPC),LT(_SM,KC_ENT) ,RCTL(KC_PSCR) ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
+    LT(_GM,KC_NO)  ,LALT(KC_PSCR),LSFT(KC_PSCR),KC_WHOM      ,LT(_NV,KC_SPC),LT(_FN,KC_P),LT(_FN,KC_BSPC),LT(_SM,KC_ENT) ,KC_WHOM       ,RSFT(KC_PSCR)  ,RALT(KC_PSCR) ,LT(_GM,KC_NO)) ,
 
   [_GM] = LAYOUT_universal(
     KC_Q           ,KC_X         ,KC_W         ,KC_Z         ,KC_T          ,                                     KC_T           ,KC_Z          ,KC_K           ,KC_X          ,KC_Q           ,
@@ -659,7 +659,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,LT(_FN,KC_BSPC),LT(_SM,KC_ENT) ,_______       ,_______        ,_______       ,_______)       ,
 
   [_FN] = LAYOUT_universal(
-    KC_WBAK        ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD        ,KC_PGDN       ,KC_WHOM        ,KC_PGUP       ,KC_WBAK        ,
+    KC_WBAK        ,KC_F1        ,KC_F2        ,KC_F3        ,KC_WFWD       ,                                     KC_WFWD        ,KC_PGDN       ,KC_PSCR        ,KC_PGUP       ,KC_WBAK        ,
     LGUI_T(KC_F10) ,LALT_T(KC_F4),LSFT_T(KC_F5),LCTL_T(KC_F6),KC_F11        ,                                     KC_F21         ,KC_MS_BTN1    ,KC_MS_BTN3     ,KC_MS_BTN2    ,KC_F20         ,
     KC_F12         ,KC_F7        ,KC_F8        ,KC_F9        ,LCTL(KC_W)    ,                                     KC_ENT         ,KC_F17        ,KC_F18         ,KC_F19        ,KC_F22         ,
     _______        ,_______      ,_______      ,_______      ,_______       ,_______     ,KC_P           ,_______        ,_______       ,_______        ,_______       ,_______)       ,
